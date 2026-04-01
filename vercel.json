@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/account/:path*",
+      "destination": "https://api.guava.finance/account/:path*"
+    }
+  ]
+}

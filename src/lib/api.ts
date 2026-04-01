@@ -3,7 +3,7 @@
 // In development the Vite proxy forwards /account/* requests to avoid CORS issues.
 // In production, requests go directly to VITE_API_BASE_URL.
 
-const BASE = import.meta.env.DEV ? '' : ((import.meta.env.VITE_API_BASE_URL as string) ?? '')
+const BASE = ''
 
 const HEADERS: HeadersInit = {
   'Content-Type': 'application/json',
