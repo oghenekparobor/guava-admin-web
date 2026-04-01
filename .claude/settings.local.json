@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:guava-test-web.vercel.app)",
+      "Bash(find /Users/oghenekparoboreminokanju/guava-admin-web -type f -name \"*.html\" 2>/dev/null | head -20)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)"
+    ]
+  }
+}
