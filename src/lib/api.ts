@@ -1,9 +1,7 @@
 // Guava Admin API client
-// Set VITE_API_BASE_URL in .env.local to connect to a live backend.
-// In development the Vite proxy forwards /account/* requests to avoid CORS issues.
-// In production, requests go directly to VITE_API_BASE_URL.
+// Set VITE_API_BASE_URL in .env to connect to the backend.
 
-const BASE = ''
+const BASE = (import.meta.env.VITE_API_BASE_URL as string) ?? ''
 
 const HEADERS: HeadersInit = {
   'Content-Type': 'application/json',
