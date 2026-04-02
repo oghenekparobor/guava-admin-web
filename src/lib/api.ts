@@ -1,7 +1,7 @@
 // Guava Admin API client
 // Set VITE_API_BASE_URL in .env to connect to the backend.
 
-const BASE = ''
+const BASE = (import.meta.env.VITE_API_BASE_URL as string) ?? ''
 
 const HEADERS: HeadersInit = {
   'Content-Type': 'application/json',
