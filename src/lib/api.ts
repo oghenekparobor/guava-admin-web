@@ -1,16 +1,24 @@
 // Guava Admin API client
 // Set VITE_API_BASE_URL in .env to connect to the backend.
 
+import { auth } from './firebase'
+
 const BASE = (import.meta.env.VITE_API_BASE_URL as string) ?? ''
 
-const HEADERS: HeadersInit = {
-  'Content-Type': 'application/json',
-  'X-App-ID': 'com.example.app',
+// Built per-request so X-Admin-Key always carries the current Firebase auth UID.
+function headers(): HeadersInit {
+  const h: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'X-App-ID': 'finance.guava.web',
+  }
+  const uid = auth.currentUser?.uid
+  if (uid) h['X-Admin-Key'] = uid
+  return h
 }
 
 async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
   const qs = Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : ''
-  const res = await fetch(BASE + path + qs, { headers: HEADERS })
+  const res = await fetch(BASE + path + qs, { headers: headers() })
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
   return res.json() as Promise<T>
 }

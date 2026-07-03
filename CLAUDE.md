@@ -5,60 +5,49 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev      # start dev server at http://localhost:5173
-npm run build    # TypeScript check + production build → dist/
+npm run dev      # Vite dev server at http://localhost:5173
+npm run build    # tsc (typecheck) then vite build → dist/
 npm run preview  # serve the production build locally
 ```
 
-## Repository Overview
+There is **no test runner and no lint script**. `npm run build` is the only correctness gate — it runs `tsc` before bundling, so a type error fails the build.
 
-This is the **Guava Admin Web** repository — currently containing documentation for building an admin analytics dashboard for the Guava fintech platform (non-custodial USDC wallet on Solana mainnet).
+## Stack
 
-**Stack:** React 18 + TypeScript, Vite, Tailwind CSS 3, Recharts, Lucide React
+React 18 + TypeScript, Vite 5, Tailwind CSS 3, Recharts (charts), Lucide React (icons), Firebase (Google auth + analytics), `clsx`/`tailwind-merge` (the `cn()` helper).
 
-**Key files:**
-- `src/App.tsx` — Root component; holds `currentPage` and `period` state, renders Sidebar + Header + page
-- `src/lib/mockData.ts` — All mock API data (mirrors api.md response shapes exactly)
-- `src/lib/utils.ts` — `formatCurrency`, `formatNumber`, `formatPercent`, `CHART_COLORS`, `CURRENCY_COLORS`
-- `src/components/` — `Sidebar`, `Header`, `MetricCard`, `ChartCard`
-- `src/pages/` — One file per nav section: `Overview`, `Revenue`, `Transactions`, `Users`, `KYC`, `Geography`, `Cohort`
+## Architecture
 
-**Documentation files (no code):**
-- `api.md` — Backend API endpoint specifications
-- `traction.md` — Product traction data and business metrics (investor/pitch context)
+The app is a single-page client dashboard. There is no router — navigation is `currentPage` state in `App.tsx` driving a `switch` that renders one page component.
 
-## Project Context
+**Auth gate (`main.tsx` → `App.tsx`):** `AuthProvider` (`src/context/AuthContext.tsx`) wraps the app and exposes `useAuth()` (`user`, `loading`, `signIn`, `signOut`) backed by Firebase `onAuthStateChanged` + Google `signInWithPopup`. `App` shows a spinner while `loading`, then renders `<Login />` if signed out or `<Dashboard />` if signed in. Firebase config is hardcoded in `src/lib/firebase.ts` (public client keys).
 
-Guava is a Solana-based non-custodial USDC wallet targeting SMEs, freelancers, and non-crypto-native users. The admin dashboard surfaces analytics for internal use: user growth, revenue, KYC compliance, geographic distribution, and transaction analysis.
+**Data flow — three layers, do not skip a layer:**
+1. `src/lib/api.ts` — the `api` object: one thin function per backend endpoint. All paths are prefixed **`/account/admin-details/`** and sent with header `X-App-ID: com.example.app`. Base URL comes from `VITE_API_BASE_URL`. Most endpoints unwrap the `{ results: [...] }` envelope via the `results()` helper; `platformHealth` returns a flat object via `get()`.
+2. `src/hooks/useDashboardData.ts` — a `useXxx()` hook per dataset, all built on the internal `useData()` base hook (returns `{ data, loading, error, refetch }`). Hooks also attach display `label`s (`withMonthLabel`/`withWeekLabel`/`withQuarterLabel`) and compute **derived** datasets (`useCumulativeUsers`, `useRunRates` for MRR/ARR/etc.) purely client-side. `HAS_API = Boolean(VITE_API_BASE_URL)`.
+3. `src/pages/*` — one page per nav section (`Overview`, `Revenue`, `Transactions`, `Users`, `KYC`, `Geography`, `Cohort`). Each page early-returns `<NoApiState />` when `!HAS_API`, calls its hooks, and renders `<ErrorBanner>` / loading states from `src/components/PageState.tsx`.
 
-## API Architecture
+**No mock data.** When `VITE_API_BASE_URL` is unset the dashboard shows the "API not configured" state — it does **not** fall back to sample data. (`.env.example` still says otherwise; that comment is stale.)
 
-All admin analytics endpoints live under `/dashboard/admin-details/` and are documented in `api.md`.
+**Shared UI:** `src/components/` — `Sidebar`, `Header` (owns the period picker), `MetricCard`, `ChartCard`, `PageState` (`NoApiState`/`ErrorState`/`ErrorBanner`).
 
-**Authentication:** All endpoints require the `require_app_source_validation` decorator (proper auth headers required).
+**App-wide state** lives entirely in `App.tsx`: `currentPage` (`Page` type) and `period` (`Period` type). Changing `period` remounts the active page via `key={period}` to force a refetch. `Geography` ignores `period`.
 
-**Common query parameter:** `start_date` (default: `"2025-06-03"`) filters data from a given date.
+## API routing (dev vs prod)
 
-**Response envelope:** All list endpoints return `{ "results": [...] }`.
+- **Dev:** set `VITE_API_BASE_URL` in `.env.local`. `vite.config.ts` proxies `/account/*` to that target (changeOrigin, secure) so browser requests avoid CORS.
+- **Prod (Vercel):** `vercel.json` rewrites `/account/:path*` → `https://api.guava.finance/account/:path*`.
 
-**Endpoint groups:**
-- User growth: `/user-growth/weekly|monthly|quarterly/`
-- Revenue: `/revenue/monthly|quarterly|annual|weekly-growth|by-currency/`
-- Deposits: `/deposits/monthly/`
-- Engagement: `/engagement/mau/` and `/engagement/retention/`
-- KYC: `/kyc/monthly-stats/` and `/kyc/status-distribution/`
-- Transaction types: `/transaction-types/monthly/`
-- Geography: `/geography/user-distribution/`
-- Cohort: `/cohort/monthly/`
-- Bank transfers: `/bank-transfers/monthly/`
-- Platform health: `/health/overview/` (fixed 30-day window, no `start_date`)
+Because of both, the frontend can call same-origin `/account/...` paths; `VITE_API_BASE_URL` may be left as a relative base in production.
 
-**Legacy endpoints** (previously implemented, no versioning needed):
-- `/status-analysis/`, `/user-category-analysis/`, `/category-comparative/`, `/monthly-category-volume/`, `/type-source-analysis/`, `/volume-over-time/`
+## Backend endpoint reference
 
-## Data Conventions
+`api.md` documents the endpoints but lists them under `/dashboard/admin-details/` — **the code actually calls `/account/admin-details/`**. Trust `src/lib/api.ts` for the live paths. All endpoints require proper auth headers (`require_app_source_validation`). Common query param: `start_date` (results ordered newest-first). `/health/overview/` takes no `start_date` (fixed 30-day window).
 
-- Monetary values: 2 decimal places (multi-currency: USDC, NGN, USD, CHF, AED, ZAR, BRL, INR, SGD)
-- Dates: ISO 8601 format; results ordered newest-first
-- Growth/rate fields: 2 decimal places, expressed as percentages (e.g., `25.0` = 25%)
-- Country codes: ISO 3-letter codes (e.g., `"NGA"`, `"GHA"`)
+`traction.md` is business/pitch context, not code.
+
+## Data & styling conventions
+
+- Monetary values: 2 decimals, multi-currency (USDC, NGN, USD, CHF, AED, ZAR, BRL, INR, SGD). Format via `formatCurrency`/`formatNumber`/`formatPercent` in `src/lib/utils.ts`; per-currency colors in `CURRENCY_COLORS`, chart palette in `CHART_COLORS`.
+- Growth/rate fields are percentages already (`25.0` = 25%); dates ISO 8601; country codes ISO 3-letter (`"NGA"`).
+- Tailwind theme (`tailwind.config.js`) defines custom color scales `guava` (green brand), `cream` (backgrounds), and `sidebar`; font is Inter. Prefer these tokens over raw hex.
