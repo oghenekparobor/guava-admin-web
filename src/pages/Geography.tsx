@@ -12,13 +12,13 @@ import { HAS_API, useGeography, usePlatformHealth } from '../hooks/useDashboardD
 const TT = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-card-hover p-3 text-xs">
-      <p className="font-semibold text-gray-600 mb-1.5">{label}</p>
+    <div className="bg-surface border border-border rounded-xl shadow-card-hover p-3 text-xs">
+      <p className="font-semibold text-muted mb-1.5">{label}</p>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-gray-500">{p.name}:</span>
-          <span className="font-semibold text-gray-800">{p.value}</span>
+          <span className="text-muted">{p.name}:</span>
+          <span className="font-semibold text-ink">{p.value}</span>
         </div>
       ))}
     </div>
@@ -26,8 +26,8 @@ const TT = ({ active, payload, label }: any) => {
 }
 
 const GEO_COLORS = [
-  '#16a34a','#4ade80','#86efac','#0ea5e9','#38bdf8','#7c3aed',
-  '#a78bfa','#f59e0b','#fcd34d','#ef4444','#f87171','#6b7280','#d1d5db',
+  '#F2FD7D','#48DAB1','#A8E6A0','#79BACB','#8FD3C4','#AAC0F2',
+  '#C2B6F0','#F2D08A','#D4A441','#F4A988','#E88AA6','#8A968F','#8A968F',
 ]
 
 export default function Geography() {
@@ -57,7 +57,7 @@ export default function Geography() {
           value={formatNumber(geographyDistribution.length)}
           subtitle="Active users across the globe"
           icon={Globe}
-          iconBg="bg-guava-50" iconColor="text-guava-600"
+          iconBg="bg-lime/15" iconColor="text-lime"
         />
         <MetricCard loading={gL}
           title="Largest Market"
@@ -86,9 +86,9 @@ export default function Geography() {
         <ChartCard loading={gL} title="Top 10 Countries" subtitle="By user count" className="col-span-2">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={top10} layout="vertical" margin={{ top: 4, right: 16, bottom: 0, left: 8 }}>
-              <CartesianGrid horizontal={false} stroke="#f3f4f6" />
-              <XAxis type="number" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis type="category" dataKey="country" tick={{ fontSize: 10, fill: '#6b7280' }} axisLine={false} tickLine={false} width={110}
+              <CartesianGrid horizontal={false} stroke="#38564F" />
+              <XAxis type="number" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis type="category" dataKey="country" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} width={110}
                 tickFormatter={(v) => {
                   const d = geographyDistribution.find((g: any) => g.country === v)
                   return d ? `${(d as any).flag ?? ''} ${v}` : v
@@ -114,8 +114,8 @@ export default function Geography() {
               {pieData.map(d => (
                 <div key={d.name} className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: d.color }} />
-                  <span className="text-[10px] text-gray-600 flex-1 truncate">{d.name}</span>
-                  <span className="text-[10px] font-bold text-gray-900">{d.value}</span>
+                  <span className="text-[10px] text-muted flex-1 truncate">{d.name}</span>
+                  <span className="text-[10px] font-bold text-ink">{d.value}</span>
                 </div>
               ))}
             </div>
@@ -127,41 +127,41 @@ export default function Geography() {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-gray-50">
+              <tr className="border-b border-border">
                 {['#','Country','Users','Share','Verified','Verification Rate'].map(h => (
-                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 pb-2.5 pr-6">{h}</th>
+                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-6">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {geographyDistribution.map((row: any, idx: number) => {
                 const verRate = row.user_count > 0 ? (row.verified_users / row.user_count) * 100 : 0
                 return (
-                  <tr key={row.country_code} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-2.5 pr-6 text-gray-400 font-mono">{String(idx + 1).padStart(2, '0')}</td>
+                  <tr key={row.country_code} className="hover:bg-surface/5/50 transition-colors">
+                    <td className="py-2.5 pr-6 text-faint font-mono">{String(idx + 1).padStart(2, '0')}</td>
                     <td className="py-2.5 pr-6">
                       <div className="flex items-center gap-2">
                         <span className="text-base">{row.flag}</span>
                         <div>
-                          <p className="font-semibold text-gray-800">{row.country}</p>
-                          <p className="text-[10px] text-gray-400">{row.country_code}</p>
+                          <p className="font-semibold text-ink">{row.country}</p>
+                          <p className="text-[10px] text-faint">{row.country_code}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-2.5 pr-6 font-semibold text-gray-900">{formatNumber(row.user_count)}</td>
+                    <td className="py-2.5 pr-6 font-semibold text-ink">{formatNumber(row.user_count)}</td>
                     <td className="py-2.5 pr-6">
                       <div className="flex items-center gap-2">
-                        <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className="h-full bg-guava-400 rounded-full" style={{ width: `${row.percentage}%` }} />
+                        <div className="w-16 h-1.5 bg-surface/10 rounded-full overflow-hidden">
+                          <div className="h-full bg-lime rounded-full" style={{ width: `${row.percentage}%` }} />
                         </div>
-                        <span className="text-gray-600">{row.percentage}%</span>
+                        <span className="text-muted">{row.percentage}%</span>
                       </div>
                     </td>
                     <td className="py-2.5 pr-6">{row.verified_users ?? '—'}</td>
                     <td className="py-2.5 pr-6">
                       {verRate > 0
                         ? <span className={verRate >= 20 ? 'badge-positive' : 'badge-neutral'}>{verRate.toFixed(1)}%</span>
-                        : <span className="text-gray-300 text-[10px]">—</span>
+                        : <span className="text-faint text-[10px]">—</span>
                       }
                     </td>
                   </tr>

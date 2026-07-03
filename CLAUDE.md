@@ -50,4 +50,10 @@ Because of both, the frontend can call same-origin `/account/...` paths; `VITE_A
 
 - Monetary values: 2 decimals, multi-currency (USDC, NGN, USD, CHF, AED, ZAR, BRL, INR, SGD). Format via `formatCurrency`/`formatNumber`/`formatPercent` in `src/lib/utils.ts`; per-currency colors in `CURRENCY_COLORS`, chart palette in `CHART_COLORS`.
 - Growth/rate fields are percentages already (`25.0` = 25%); dates ISO 8601; country codes ISO 3-letter (`"NGA"`).
-- Tailwind theme (`tailwind.config.js`) defines custom color scales `guava` (green brand), `cream` (backgrounds), and `sidebar`; font is Inter. Prefer these tokens over raw hex.
+- **Dark brand theme (matches the Guava mobile app):** dark teal-green surfaces with a lime accent, `IBM Plex Sans`. Use the semantic Tailwind tokens in `tailwind.config.js` over raw hex/gray utilities:
+  - Surfaces: `bg-bg` (page `#28443F`), `bg-surface` (cards `#334E48`), `bg-surface-2`, `bg-sidebar`; hairlines `border-border`; translucent overlays `bg-white/5`–`/10`.
+  - Text: `text-ink` (primary `#FCFCFC`), `text-muted` (`#B0B7B1`), `text-faint`.
+  - Accent: `lime` / `text-lime` / `bg-lime` (`#F2FD7D`); put dark content on lime with `text-lime-ink`.
+  - Status: `positive` / `negative` / `warning` / `info` (and the `.badge-*` classes in `index.css`).
+  - The `guava-*` scale is a green ramp (light mint → deep bg) anchored on the app palette; `cream-*` is repointed to dark surfaces for safety. Reusable component styles (`.card`, `.nav-item`, `.badge-*`, `.period-tab*`) live in `src/index.css`.
+  - Chart series/currency colors: `CHART_COLORS` / `CURRENCY_COLORS` in `src/lib/utils.ts` are tuned to read on dark; Recharts axis/grid/tooltip theming is in `index.css`. Prefer these over hardcoded hex in chart props.

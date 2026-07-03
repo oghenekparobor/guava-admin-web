@@ -13,13 +13,13 @@ import { HAS_API, useCohort } from '../hooks/useDashboardData'
 const TT = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-card-hover p-3 text-xs">
-      <p className="font-semibold text-gray-600 mb-1.5">{label}</p>
+    <div className="bg-surface border border-border rounded-xl shadow-card-hover p-3 text-xs">
+      <p className="font-semibold text-muted mb-1.5">{label}</p>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-gray-500">{p.name}:</span>
-          <span className="font-semibold text-gray-800">
+          <span className="text-muted">{p.name}:</span>
+          <span className="font-semibold text-ink">
             {String(p.name).includes('LTV') || String(p.name).includes('Revenue')
               ? formatCurrency(p.value, { decimals: 2 })
               : formatNumber(p.value)}
@@ -51,7 +51,7 @@ export default function Cohort({ period: _period }: CohortProps) {
           value={formatCurrency(bestCohort.lifetime_value ?? 0, { decimals: 2 })}
           subtitle={bestCohort.label ? `${bestCohort.label} cohort` : undefined}
           icon={TrendingUp}
-          iconBg="bg-guava-50" iconColor="text-guava-600"
+          iconBg="bg-lime/15" iconColor="text-lime"
         />
         <MetricCard loading={cL}
           title="Avg LTV (all cohorts)"
@@ -80,9 +80,9 @@ export default function Cohort({ period: _period }: CohortProps) {
         <ChartCard loading={cL} title="Lifetime Value by Cohort" subtitle="Revenue earned per user">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={cohortMonthly} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
                 tickFormatter={v => `$${v}`} width={36} />
               <Tooltip content={<TT />} />
               <Bar dataKey="lifetime_value" name="LTV" fill={CHART_COLORS.primary} radius={[4, 4, 0, 0]} maxBarSize={32} />
@@ -99,10 +99,10 @@ export default function Cohort({ period: _period }: CohortProps) {
                   <stop offset="95%" stopColor={CHART_COLORS.secondary} stopOpacity={0}    />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="size" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={28} />
-              <YAxis yAxisId="rev" orientation="right" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="size" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} width={28} />
+              <YAxis yAxisId="rev" orientation="right" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
                 tickFormatter={v => `$${v}`} width={36} />
               <Tooltip content={<TT />} />
               <Bar yAxisId="size" dataKey="cohort_size" name="Cohort Size" fill={CHART_COLORS.secondary}
@@ -124,9 +124,9 @@ export default function Cohort({ period: _period }: CohortProps) {
                 <stop offset="95%" stopColor={CHART_COLORS.purple} stopOpacity={0}    />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="#f3f4f6" />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+            <CartesianGrid vertical={false} stroke="#38564F" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
               tickFormatter={v => `$${v}`} width={36} />
             <Tooltip content={<TT />} />
             <Area type="monotone" dataKey="avg_revenue_per_user" name="Avg Revenue/User"
@@ -140,22 +140,22 @@ export default function Cohort({ period: _period }: CohortProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-gray-50">
+              <tr className="border-b border-border">
                 {['Cohort','Cohort Size','Total Revenue','Avg Rev/User','Lifetime Value','Status'].map(h => (
-                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 pb-2.5 pr-6">{h}</th>
+                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-6">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {[...cohortMonthly].reverse().map((row: any) => {
                 const maturity = (row.lifetime_value ?? 0) >= 20 ? 'Mature' : (row.lifetime_value ?? 0) >= 5 ? 'Growing' : 'Early'
                 return (
-                  <tr key={row.cohort ?? row.label} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-2.5 pr-6 font-semibold text-gray-700">{row.label}</td>
+                  <tr key={row.cohort ?? row.label} className="hover:bg-surface/5/50 transition-colors">
+                    <td className="py-2.5 pr-6 font-semibold text-muted">{row.label}</td>
                     <td className="py-2.5 pr-6">{formatNumber(row.cohort_size ?? 0)}</td>
                     <td className="py-2.5 pr-6 font-mono">{formatCurrency(row.total_revenue ?? 0, { decimals: 2 })}</td>
                     <td className="py-2.5 pr-6 font-mono">{formatCurrency(row.avg_revenue_per_user ?? 0, { decimals: 2 })}</td>
-                    <td className="py-2.5 pr-6 font-mono font-semibold text-gray-900">{formatCurrency(row.lifetime_value ?? 0, { decimals: 2 })}</td>
+                    <td className="py-2.5 pr-6 font-mono font-semibold text-ink">{formatCurrency(row.lifetime_value ?? 0, { decimals: 2 })}</td>
                     <td className="py-2.5 pr-6">
                       <span className={maturity === 'Mature' ? 'badge-positive' : maturity === 'Growing' ? 'badge-warning' : 'badge-neutral'}>
                         {maturity}

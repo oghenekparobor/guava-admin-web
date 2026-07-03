@@ -21,26 +21,26 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-cream-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-canvas flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         {/* Logo / brand */}
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-sidebar flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-guava-400" stroke="currentColor" strokeWidth={2}>
+          <div className="w-14 h-14 rounded-2xl bg-lime flex items-center justify-center mx-auto mb-4 shadow-card-hover">
+            <svg viewBox="0 0 24 24" fill="none" className="w-7 h-7 text-lime-ink" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z" />
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M12 8v4l3 3" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Guava Admin</h1>
-          <p className="text-sm text-gray-500 mt-1">Sign in to access the dashboard</p>
+          <h1 className="text-2xl font-bold text-ink tracking-tight">Guava Admin</h1>
+          <p className="text-sm text-muted mt-1">Sign in to access the dashboard</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="bg-surface rounded-2xl shadow-card border border-border p-8">
           {error && (
-            <div className="mb-4 px-3 py-2.5 bg-red-50 border border-red-100 rounded-xl text-xs text-red-700 font-medium">
+            <div className="mb-4 px-3 py-2.5 bg-negative/10 border border-negative/30 rounded-xl text-xs text-negative font-medium">
               {error}
             </div>
           )}
@@ -48,7 +48,7 @@ export default function Login() {
           <button
             onClick={handleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100 text-gray-700 font-semibold text-sm rounded-xl px-4 py-3 transition-all duration-150 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-200 hover:bg-gray-50 active:bg-gray-100 text-gray-700 font-semibold text-sm rounded-xl px-4 py-3 transition-all duration-150 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {loading ? (
               <svg className="w-4 h-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
@@ -66,7 +66,7 @@ export default function Login() {
             {loading ? 'Signing in…' : 'Continue with Google'}
           </button>
 
-          <p className="text-[10px] text-gray-400 text-center mt-5 leading-relaxed">
+          <p className="text-[10px] text-faint text-center mt-5 leading-relaxed">
             Access is restricted to authorised Guava team members.
           </p>
         </div>

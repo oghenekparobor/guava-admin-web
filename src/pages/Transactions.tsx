@@ -17,13 +17,13 @@ import {
 const TT = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-card-hover p-3 text-xs">
-      <p className="font-semibold text-gray-600 mb-1.5">{label}</p>
+    <div className="bg-surface border border-border rounded-xl shadow-card-hover p-3 text-xs">
+      <p className="font-semibold text-muted mb-1.5">{label}</p>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-gray-500">{p.name}:</span>
-          <span className="font-semibold text-gray-800">
+          <span className="text-muted">{p.name}:</span>
+          <span className="font-semibold text-ink">
             {String(p.name).toLowerCase().includes('volume') || String(p.name).toLowerCase().includes('amount')
               ? formatCurrency(p.value, { compact: true })
               : p.name.includes('%') ? `${p.value}%` : formatNumber(p.value)}
@@ -85,7 +85,7 @@ export default function Transactions({ period }: TxProps) {
           change={pct(latest.total_volume ?? 0, prev.total_volume ?? 0)}
           changeLabel="vs last month"
           icon={TrendingUp}
-          iconBg="bg-guava-50" iconColor="text-guava-600"
+          iconBg="bg-lime/15" iconColor="text-lime"
         />
         <MetricCard loading={mrL}
           title="Avg Transaction Size"
@@ -114,9 +114,9 @@ export default function Transactions({ period }: TxProps) {
                 <stop offset="95%" stopColor={CHART_COLORS.accent} stopOpacity={0}    />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="#f3f4f6" />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+            <CartesianGrid vertical={false} stroke="#38564F" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
               tickFormatter={v => v >= 1_000_000 ? `$${(v/1_000_000).toFixed(1)}M` : v >= 1000 ? `$${(v/1000).toFixed(0)}K` : `$${v}`} width={48} />
             <Tooltip content={<TT />} />
             <Area type="monotone" dataKey="volume" name="Volume" stroke={CHART_COLORS.accent}
@@ -140,9 +140,9 @@ export default function Transactions({ period }: TxProps) {
                 <div key={d.name}>
                   <div className="flex items-center gap-2 mb-0.5">
                     <span className="w-2 h-2 rounded-full" style={{ background: d.color }} />
-                    <span className="text-xs text-gray-600 font-medium">{d.name}</span>
+                    <span className="text-xs text-muted font-medium">{d.name}</span>
                   </div>
-                  <p className="text-sm font-bold text-gray-900 ml-4">{d.value}%</p>
+                  <p className="text-sm font-bold text-ink ml-4">{d.value}%</p>
                 </div>
               ))}
             </div>
@@ -152,9 +152,9 @@ export default function Transactions({ period }: TxProps) {
         <ChartCard loading={btL} title="Bank Transfer Success Rate" subtitle="Monthly trend">
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={bankTransfers} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
                 tickFormatter={v => `${v}%`} width={32} domain={[0, 100]} />
               <Tooltip content={<TT />} />
               <Bar dataKey="success_rate_percentage" name="Success Rate %" radius={[3, 3, 0, 0]} maxBarSize={24} fill={CHART_COLORS.primary} />
@@ -166,9 +166,9 @@ export default function Transactions({ period }: TxProps) {
       <ChartCard loading={mvL} title="Volume by Transaction Type" subtitle="Bank Transfer vs Wallet (monthly)">
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={monthlyVolume} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <CartesianGrid vertical={false} stroke="#f3f4f6" />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+            <CartesianGrid vertical={false} stroke="#38564F" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
               tickFormatter={v => v >= 1_000_000 ? `$${(v/1_000_000).toFixed(1)}M` : v >= 1000 ? `$${(v/1000).toFixed(0)}K` : `$${v}`} width={48} />
             <Tooltip content={<TT />} />
             <Bar dataKey="bank_transfer" name="Bank Transfer Volume" stackId="a" fill={CHART_COLORS.primary}  maxBarSize={32} />
@@ -181,16 +181,16 @@ export default function Transactions({ period }: TxProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-gray-50">
+              <tr className="border-b border-border">
                 {['Month','Transactions','Volume','Revenue','Avg Size','Active Users','Rev/User'].map(h => (
-                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 pb-2.5 pr-6">{h}</th>
+                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-6">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {[...monthlyRevenue].reverse().map((row: any) => (
-                <tr key={row.month} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-2.5 pr-6 font-semibold text-gray-700">{row.label}</td>
+                <tr key={row.month} className="hover:bg-surface/5/50 transition-colors">
+                  <td className="py-2.5 pr-6 font-semibold text-muted">{row.label}</td>
                   <td className="py-2.5 pr-6">{formatNumber(row.total_transactions ?? 0)}</td>
                   <td className="py-2.5 pr-6 font-mono">{formatCurrency(row.total_volume ?? 0, { compact: true })}</td>
                   <td className="py-2.5 pr-6 font-mono">{formatCurrency(row.total_revenue ?? 0, { decimals: 2 })}</td>

@@ -45,27 +45,28 @@ export function changeArrow(value: number): string {
   return '→'
 }
 
+// Tuned to read on the dark teal-green surfaces (Guava app palette).
 export const CHART_COLORS = {
-  primary:   '#16a34a',
-  secondary: '#4ade80',
-  tertiary:  '#86efac',
-  accent:    '#0ea5e9',
-  warning:   '#f59e0b',
-  danger:    '#ef4444',
-  purple:    '#8b5cf6',
-  gray:      '#9ca3af',
+  primary:   '#F2FD7D', // lime accent
+  secondary: '#48DAB1', // green2
+  tertiary:  '#A8E6A0', // lightGreen
+  accent:    '#79BACB', // washedBlue (brightened)
+  warning:   '#F2D08A', // washedYellow
+  danger:    '#F4A988', // washedRed
+  purple:    '#AAC0F2', // periwinkle
+  gray:      '#8A968F', // faint
 }
 
 export const CURRENCY_COLORS: Record<string, string> = {
-  USDC: '#2563eb',
-  NGN:  '#16a34a',
-  USD:  '#0891b2',
-  CHF:  '#7c3aed',
-  AED:  '#b45309',
-  ZAR:  '#be185d',
-  BRL:  '#15803d',
-  INR:  '#d97706',
-  SGD:  '#0e7490',
+  USDC: '#F2FD7D',
+  NGN:  '#48DAB1',
+  USD:  '#79BACB',
+  CHF:  '#AAC0F2',
+  AED:  '#F2D08A',
+  ZAR:  '#F4A988',
+  BRL:  '#A8E6A0',
+  INR:  '#D4A441',
+  SGD:  '#8FD3C4',
 }
 
 export function shortMonth(iso: string): string {

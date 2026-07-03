@@ -17,13 +17,13 @@ import {
 const TT = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-card-hover p-3 text-xs">
-      <p className="font-semibold text-gray-600 mb-1.5">{label}</p>
+    <div className="bg-surface border border-border rounded-xl shadow-card-hover p-3 text-xs">
+      <p className="font-semibold text-muted mb-1.5">{label}</p>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-gray-500">{p.name}:</span>
-          <span className="font-semibold text-gray-800">
+          <span className="text-muted">{p.name}:</span>
+          <span className="font-semibold text-ink">
             {String(p.name).includes('Rate') || String(p.name).includes('%') ? `${p.value}%` : p.value}
           </span>
         </div>
@@ -74,7 +74,7 @@ export default function Users({ period }: UsersProps) {
           change={pct(latest.new_users ?? 0, prev.new_users ?? 0)}
           changeLabel="new users vs last month"
           icon={UsersIcon}
-          iconBg="bg-guava-50" iconColor="text-guava-600"
+          iconBg="bg-lime/15" iconColor="text-lime"
         />
         <MetricCard loading={mauL}
           title="Monthly Active Users"
@@ -106,9 +106,9 @@ export default function Users({ period }: UsersProps) {
         <ChartCard loading={isGrowthLoading} title="New User Signups" subtitle="Growth per period">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={growthData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={28} />
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} width={28} />
               <Tooltip content={<TT />} />
               <Bar dataKey="new_users" name="New Users" fill={CHART_COLORS.primary}
                 radius={[4, 4, 0, 0]} maxBarSize={28} />
@@ -125,9 +125,9 @@ export default function Users({ period }: UsersProps) {
                   <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}    />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={28} />
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} width={28} />
               <Tooltip content={<TT />} />
               <Area type="monotone" dataKey="total" name="Total Users" stroke={CHART_COLORS.primary}
                 strokeWidth={2} fill="url(#cumGrad)"
@@ -141,10 +141,10 @@ export default function Users({ period }: UsersProps) {
         <ChartCard loading={mauL} title="Monthly Active Users (MAU)" subtitle="Active users + avg transactions/user">
           <ResponsiveContainer width="100%" height={180}>
             <ComposedChart data={mauData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="mau" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={22} />
-              <YAxis yAxisId="tpu" orientation="right" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={22} />
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="mau" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} width={22} />
+              <YAxis yAxisId="tpu" orientation="right" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} width={22} />
               <Tooltip content={<TT />} />
               <Bar yAxisId="mau" dataKey="monthly_active_users" name="MAU" fill={CHART_COLORS.secondary}
                 opacity={0.7} radius={[3, 3, 0, 0]} maxBarSize={24} />
@@ -164,9 +164,9 @@ export default function Users({ period }: UsersProps) {
                   <stop offset="95%" stopColor={CHART_COLORS.purple} stopOpacity={0}    />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
                 tickFormatter={v => `${v}%`} width={32} domain={[0, 110]} />
               <Tooltip content={<TT />} />
               <Area type="monotone" dataKey="retention_rate_percentage" name="Retention Rate"
@@ -181,20 +181,20 @@ export default function Users({ period }: UsersProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-gray-50">
+              <tr className="border-b border-border">
                 {['Month','New Users','Growth Rate','MAU','Returning','Retention','Avg Txns/User'].map(h => (
-                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 pb-2.5 pr-6">{h}</th>
+                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-6">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {[...monthlyUserGrowth].reverse().map((row: any) => {
                 const mau = mauData.find((m: any) => m.month === row.month)
                 const ret = retentionData.find((r: any) => r.month === row.month)
                 return (
-                  <tr key={row.month} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-2.5 pr-6 font-semibold text-gray-700">{row.label}</td>
-                    <td className="py-2.5 pr-6 font-semibold text-gray-900">{row.new_users}</td>
+                  <tr key={row.month} className="hover:bg-surface/5/50 transition-colors">
+                    <td className="py-2.5 pr-6 font-semibold text-muted">{row.label}</td>
+                    <td className="py-2.5 pr-6 font-semibold text-ink">{row.new_users}</td>
                     <td className="py-2.5 pr-6">
                       {row.growth_rate_percentage != null ? (
                         <span className={row.growth_rate_percentage > 0 ? 'badge-positive' : row.growth_rate_percentage < 0 ? 'badge-negative' : 'badge-neutral'}>

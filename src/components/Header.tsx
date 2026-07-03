@@ -39,16 +39,16 @@ export default function Header({ currentPage, period, onPeriodChange }: HeaderPr
     : (user?.email?.[0] ?? 'A').toUpperCase()
 
   return (
-    <header className="flex items-center gap-4 px-6 h-14 bg-cream-50 border-b border-gray-100 flex-shrink-0">
+    <header className="flex items-center gap-4 px-6 h-14 bg-canvas border-b border-border flex-shrink-0">
       {/* Title */}
       <div className="flex-1 min-w-0">
-        <h1 className="text-sm font-semibold text-gray-900 truncate">{PAGE_TITLES[currentPage]}</h1>
-        <p className="text-[10px] text-gray-400">Guava Finance</p>
+        <h1 className="text-sm font-semibold text-ink truncate">{PAGE_TITLES[currentPage]}</h1>
+        <p className="text-[10px] text-faint">Guava Finance</p>
       </div>
 
       {/* Period selector */}
       {showPeriod && (
-        <div className="flex items-center gap-0.5 bg-gray-100 rounded-xl p-1">
+        <div className="flex items-center gap-0.5 bg-white/5 rounded-xl p-1">
           {PERIODS.map(({ value, label }) => (
             <button
               key={value}
@@ -66,12 +66,12 @@ export default function Header({ currentPage, period, onPeriodChange }: HeaderPr
 
       {/* Actions */}
       <div className="flex items-center gap-1">
-        <button className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
+        <button className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:bg-white/5 hover:text-ink transition-colors">
           <Search size={15} />
         </button>
-        <button className="relative w-8 h-8 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
+        <button className="relative w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:bg-white/5 hover:text-ink transition-colors">
           <Bell size={15} />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-guava-500 rounded-full" />
+          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-lime rounded-full" />
         </button>
 
         {/* Avatar with sign-out tooltip */}
@@ -80,25 +80,25 @@ export default function Header({ currentPage, period, onPeriodChange }: HeaderPr
             <img
               src={user.photoURL}
               alt={user.displayName ?? 'User'}
-              className="w-7 h-7 rounded-full object-cover cursor-pointer ring-2 ring-transparent hover:ring-guava-300 transition-all"
+              className="w-7 h-7 rounded-full object-cover cursor-pointer ring-2 ring-transparent hover:ring-lime/50 transition-all"
             />
           ) : (
-            <div className="w-7 h-7 rounded-full bg-guava-600 flex items-center justify-center text-[11px] font-bold text-white cursor-pointer hover:bg-guava-700 transition-colors">
+            <div className="w-7 h-7 rounded-full bg-lime flex items-center justify-center text-[11px] font-bold text-lime-ink cursor-pointer hover:bg-lime-soft transition-colors">
               {initials}
             </div>
           )}
 
           {/* Dropdown */}
-          <div className="absolute right-0 top-9 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50">
+          <div className="absolute right-0 top-9 w-48 bg-surface rounded-xl shadow-card-hover border border-border py-1 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity z-50">
             {user?.displayName && (
-              <div className="px-3 py-2 border-b border-gray-50">
-                <p className="text-xs font-semibold text-gray-900 truncate">{user.displayName}</p>
-                <p className="text-[10px] text-gray-400 truncate">{user.email}</p>
+              <div className="px-3 py-2 border-b border-border">
+                <p className="text-xs font-semibold text-ink truncate">{user.displayName}</p>
+                <p className="text-[10px] text-faint truncate">{user.email}</p>
               </div>
             )}
             <button
               onClick={signOut}
-              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-negative hover:bg-negative/15 transition-colors"
             >
               <LogOut size={12} />
               Sign out

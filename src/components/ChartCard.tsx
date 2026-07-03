@@ -15,13 +15,13 @@ function ChartSkeleton() {
     <div className="animate-pulse space-y-2 pt-2">
       <div className="flex items-end gap-1 h-32">
         {[65, 40, 80, 55, 90, 45, 70, 60, 85, 50, 75, 35].map((h, i) => (
-          <div key={i} className="flex-1 bg-gray-100 rounded-t-sm" style={{ height: `${h}%` }} />
+          <div key={i} className="flex-1 bg-white/10 rounded-t-sm" style={{ height: `${h}%` }} />
         ))}
       </div>
       <div className="flex gap-4 pt-1">
-        <div className="h-2 w-8 bg-gray-100 rounded" />
-        <div className="h-2 w-8 bg-gray-100 rounded" />
-        <div className="h-2 w-8 bg-gray-100 rounded" />
+        <div className="h-2 w-8 bg-white/10 rounded" />
+        <div className="h-2 w-8 bg-white/10 rounded" />
+        <div className="h-2 w-8 bg-white/10 rounded" />
       </div>
     </div>
   )
@@ -34,8 +34,8 @@ export default function ChartCard({
     <div className={cn('card overflow-hidden', className)}>
       <div className="flex items-start justify-between px-5 pt-5 pb-0">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+          <h3 className="text-sm font-semibold text-ink">{title}</h3>
+          {subtitle && <p className="text-xs text-faint mt-0.5">{subtitle}</p>}
         </div>
         {action && <div className="flex-shrink-0">{action}</div>}
       </div>

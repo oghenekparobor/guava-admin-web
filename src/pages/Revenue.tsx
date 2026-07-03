@@ -18,13 +18,13 @@ import { DollarSign, TrendingUp } from 'lucide-react'
 const TT = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-card-hover p-3 text-xs">
-      <p className="font-semibold text-gray-600 mb-1.5">{label}</p>
+    <div className="bg-surface border border-border rounded-xl shadow-card-hover p-3 text-xs">
+      <p className="font-semibold text-muted mb-1.5">{label}</p>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full" style={{ background: p.color }} />
-          <span className="text-gray-500">{p.name}:</span>
-          <span className="font-semibold text-gray-800">
+          <span className="text-muted">{p.name}:</span>
+          <span className="font-semibold text-ink">
             {p.name === 'Transactions' ? formatNumber(p.value) : formatCurrency(p.value, { decimals: 2 })}
           </span>
         </div>
@@ -66,7 +66,7 @@ export default function Revenue({ period }: RevenueProps) {
   const errors = [wrE, mrE].filter(Boolean)
 
   const rrCards = [
-    { label: 'MRR',  sublabel: 'Monthly Revenue Run Rate',   value: formatCurrency(runRates.mrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'Last full month',  color: 'text-guava-600',  bg: 'bg-guava-50'  },
+    { label: 'MRR',  sublabel: 'Monthly Revenue Run Rate',   value: formatCurrency(runRates.mrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'Last full month',  color: 'text-lime',  bg: 'bg-lime/15'  },
     { label: 'ARR',  sublabel: 'Annual Revenue Run Rate',     value: formatCurrency(runRates.arr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'MRR × 12',        color: 'text-blue-600',   bg: 'bg-blue-50'   },
     { label: 'QRR',  sublabel: 'Quarterly Revenue Run Rate',  value: formatCurrency(runRates.qrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'MRR × 3',         color: 'text-purple-600', bg: 'bg-purple-50' },
     { label: 'WRR',  sublabel: 'Weekly Revenue Run Rate',     value: formatCurrency(runRates.wrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'Weekly avg × 52', color: 'text-orange-600', bg: 'bg-orange-50' },
@@ -82,22 +82,22 @@ export default function Revenue({ period }: RevenueProps) {
           <div key={r.label} className={cn('card-hover p-5', rrL && 'animate-pulse')}>
             {rrL ? (
               <>
-                <div className="w-10 h-5 bg-gray-100 rounded mb-3" />
-                <div className="h-7 w-24 bg-gray-100 rounded mb-2" />
-                <div className="h-3 w-32 bg-gray-100 rounded" />
+                <div className="w-10 h-5 bg-surface/10 rounded mb-3" />
+                <div className="h-7 w-24 bg-surface/10 rounded mb-2" />
+                <div className="h-3 w-32 bg-surface/10 rounded" />
               </>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-3">
                   <span className={cn('text-xs font-bold px-2 py-0.5 rounded-lg', r.bg, r.color)}>{r.label}</span>
                   {r.change > 0
-                    ? <ArrowUpRight size={14} className="text-guava-500" />
+                    ? <ArrowUpRight size={14} className="text-lime" />
                     : <ArrowDownRight size={14} className="text-red-500" />
                   }
                 </div>
-                <p className="text-2xl font-bold text-gray-900 leading-none">{r.value}</p>
-                <p className="text-xs font-medium text-gray-500 mt-1">{r.sublabel}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{r.desc}</p>
+                <p className="text-2xl font-bold text-ink leading-none">{r.value}</p>
+                <p className="text-xs font-medium text-muted mt-1">{r.sublabel}</p>
+                <p className="text-[10px] text-faint mt-0.5">{r.desc}</p>
               </>
             )}
           </div>
@@ -113,12 +113,12 @@ export default function Revenue({ period }: RevenueProps) {
         ].map(r => (
           <div key={r.label} className={cn('card-hover p-5', rrL && 'animate-pulse')}>
             {rrL ? (
-              <><div className="h-3 w-32 bg-gray-100 rounded mb-2" /><div className="h-7 w-20 bg-gray-100 rounded" /></>
+              <><div className="h-3 w-32 bg-surface/10 rounded mb-2" /><div className="h-7 w-20 bg-surface/10 rounded" /></>
             ) : (
               <>
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 mb-2">{r.label}</p>
-                <p className="text-2xl font-bold text-gray-900">{r.value}</p>
-                <p className="text-xs text-gray-400 mt-1">{r.sub}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-faint mb-2">{r.label}</p>
+                <p className="text-2xl font-bold text-ink">{r.value}</p>
+                <p className="text-xs text-faint mt-1">{r.sub}</p>
               </>
             )}
           </div>
@@ -135,11 +135,11 @@ export default function Revenue({ period }: RevenueProps) {
                 <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}    />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} stroke="#f3f4f6" />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-            <YAxis yAxisId="rev" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+            <CartesianGrid vertical={false} stroke="#38564F" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+            <YAxis yAxisId="rev" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
               tickFormatter={v => `$${v}`} width={40} />
-            <YAxis yAxisId="txn" orientation="right" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={30} />
+            <YAxis yAxisId="txn" orientation="right" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} width={30} />
             <Tooltip content={<TT />} />
             <Area yAxisId="rev" type="monotone" dataKey="revenue" name="Revenue" stroke={CHART_COLORS.primary}
               strokeWidth={2} fill="url(#revGrad)" dot={false} activeDot={{ r: 4, strokeWidth: 0 }} />
@@ -168,26 +168,26 @@ export default function Revenue({ period }: RevenueProps) {
                 {currencyPieData.map((d: any) => (
                   <div key={d.name} className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CURRENCY_COLORS[d.name] ?? CHART_COLORS.gray }} />
-                    <span className="text-xs font-semibold text-gray-700 w-10">{d.name}</span>
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <span className="text-xs font-semibold text-muted w-10">{d.name}</span>
+                    <div className="flex-1 h-1.5 bg-surface/10 rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${d.pct}%`, background: CURRENCY_COLORS[d.name] ?? CHART_COLORS.gray }} />
                     </div>
-                    <span className="text-xs text-gray-500 w-10 text-right">{d.pct}%</span>
+                    <span className="text-xs text-muted w-10 text-right">{d.pct}%</span>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="text-xs text-gray-400 py-8 text-center">No currency data available</p>
+            <p className="text-xs text-faint py-8 text-center">No currency data available</p>
           )}
         </ChartCard>
 
         <ChartCard loading={mrL} title="Monthly Revenue">
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={monthlyRevenue} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
                 tickFormatter={v => `$${v}`} width={36} />
               <Tooltip content={<TT />} />
               <Bar dataKey="total_revenue" name="Revenue" fill={CHART_COLORS.primary}
@@ -202,16 +202,16 @@ export default function Revenue({ period }: RevenueProps) {
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
-              <tr className="border-b border-gray-50">
+              <tr className="border-b border-border">
                 {['Month','Revenue','Volume','Transactions','Active Users','Rev/User','Avg Txn'].map(h => (
-                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-gray-400 pb-2.5 pr-4">{h}</th>
+                  <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-4">{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {[...monthlyRevenue].reverse().map((row: any) => (
-                <tr key={row.month} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-2.5 pr-4 font-semibold text-gray-700">{row.label}</td>
+                <tr key={row.month} className="hover:bg-surface/5/50 transition-colors">
+                  <td className="py-2.5 pr-4 font-semibold text-muted">{row.label}</td>
                   <td className="py-2.5 pr-4 font-mono">{formatCurrency(row.total_revenue ?? 0, { decimals: 2 })}</td>
                   <td className="py-2.5 pr-4 font-mono">{formatCurrency(row.total_volume ?? 0,  { compact: true })}</td>
                   <td className="py-2.5 pr-4">{formatNumber(row.total_transactions ?? 0)}</td>

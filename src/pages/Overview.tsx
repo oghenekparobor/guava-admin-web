@@ -20,13 +20,13 @@ import {
 const TT = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-card-hover p-3 text-xs">
-      <p className="font-semibold text-gray-600 mb-1.5">{label}</p>
+    <div className="bg-surface border border-border rounded-xl shadow-card-hover p-3 text-xs">
+      <p className="font-semibold text-muted mb-1.5">{label}</p>
       {payload.map((p: any, i: number) => (
         <div key={i} className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: p.color }} />
-          <span className="text-gray-500">{p.name}:</span>
-          <span className="font-semibold text-gray-800">
+          <span className="text-muted">{p.name}:</span>
+          <span className="font-semibold text-ink">
             {typeof p.value === 'number' && p.value > 1000
               ? formatCurrency(p.value, { compact: true })
               : p.value}
@@ -93,7 +93,7 @@ export default function Overview({ period }: OverviewProps) {
           icon={DollarSign}     iconBg="bg-blue-50"   iconColor="text-blue-600"   />
         <MetricCard loading={hL} title="Revenue (30d)"   value={formatCurrency(health.revenue_30d,  { decimals: 2 })}
           change={pct(latest.total_revenue ?? 0, prev.total_revenue ?? 0)} changeLabel="vs last month"
-          icon={TrendingUp}     iconBg="bg-guava-50"  iconColor="text-guava-600"  />
+          icon={TrendingUp}     iconBg="bg-lime/15"  iconColor="text-lime"  />
         <MetricCard loading={hL} title="Active Users (30d)" value={formatNumber(health.active_users_30d)}
           change={pct(latestUG.new_users ?? 0, prevUG.new_users ?? 0)} changeLabel="vs last month"
           icon={Users}          iconBg="bg-purple-50" iconColor="text-purple-600" />
@@ -115,9 +115,9 @@ export default function Overview({ period }: OverviewProps) {
                   <stop offset="95%" stopColor={CHART_COLORS.primary} stopOpacity={0}    />
                 </linearGradient>
               </defs>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false}
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
                 tickFormatter={v => v >= 1_000_000 ? `$${(v/1_000_000).toFixed(1)}M` : v >= 1000 ? `$${(v/1000).toFixed(0)}K` : `$${v}`}
                 width={48} />
               <Tooltip content={<TT />} />
@@ -130,41 +130,41 @@ export default function Overview({ period }: OverviewProps) {
         <ChartCard loading={hL} title="System Health" subtitle="Live platform status">
           <div className="space-y-4">
             {[
-              { label: 'Uptime',     value: `${health.uptime_percentage}%`, dot: 'bg-guava-400 animate-pulse' },
+              { label: 'Uptime',     value: `${health.uptime_percentage}%`, dot: 'bg-positive animate-pulse' },
               { label: 'Error Rate', value: `${health.error_rate}%`,        dot: 'bg-amber-400' },
             ].map(r => (
               <div key={r.label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className={`w-2 h-2 rounded-full ${r.dot}`} />
-                  <span className="text-xs text-gray-500">{r.label}</span>
+                  <span className="text-xs text-muted">{r.label}</span>
                 </div>
-                <span className="text-sm font-bold text-gray-900">{r.value}</span>
+                <span className="text-sm font-bold text-ink">{r.value}</span>
               </div>
             ))}
             {[
-              { label: 'Total Users',    value: health.total_users,          icon: CheckCircle2, color: 'text-guava-500'  },
+              { label: 'Total Users',    value: health.total_users,          icon: CheckCircle2, color: 'text-lime'  },
               { label: 'KYC (30d)',      value: health.kyc_submissions_30d,  icon: Activity,     color: 'text-blue-500'   },
               { label: 'Deposits (30d)', value: health.deposits_30d,          icon: Activity,     color: 'text-purple-500' },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Icon size={12} className={color} />
-                  <span className="text-xs text-gray-500">{label}</span>
+                  <span className="text-xs text-muted">{label}</span>
                 </div>
-                <span className="text-sm font-bold text-gray-900">{formatNumber(value)}</span>
+                <span className="text-sm font-bold text-ink">{formatNumber(value)}</span>
               </div>
             ))}
 
             {/* KYC status mini */}
             {!kycL && kycDist.length > 0 && (
-              <div className="pt-2 border-t border-gray-50">
-                <p className="text-xs font-semibold text-gray-500 mb-2.5">KYC Status</p>
+              <div className="pt-2 border-t border-border">
+                <p className="text-xs font-semibold text-muted mb-2.5">KYC Status</p>
                 <div className="space-y-1.5">
                   {kycDist.map((d: any, i: number) => (
                     <div key={d.kyc_status} className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: KYC_COLORS[i] }} />
-                      <span className="text-[10px] text-gray-500 flex-1 truncate">{d.label ?? d.kyc_status}</span>
-                      <span className="text-[10px] font-semibold text-gray-700">{d.user_count}</span>
+                      <span className="text-[10px] text-muted flex-1 truncate">{d.label ?? d.kyc_status}</span>
+                      <span className="text-[10px] font-semibold text-muted">{d.user_count}</span>
                     </div>
                   ))}
                 </div>
@@ -179,9 +179,9 @@ export default function Overview({ period }: OverviewProps) {
         <ChartCard loading={mgL} title="User Growth" subtitle="New signups per period" className="col-span-2">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={growthData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-              <CartesianGrid vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} axisLine={false} tickLine={false} width={30} />
+              <CartesianGrid vertical={false} stroke="#38564F" />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} width={30} />
               <Tooltip content={<TT />} />
               <Bar dataKey="new_users" name="New Users" fill={CHART_COLORS.secondary}
                 radius={[4, 4, 0, 0]} maxBarSize={32} />
@@ -196,12 +196,12 @@ export default function Overview({ period }: OverviewProps) {
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-1.5">
                     {c.flag && <span className="text-sm">{c.flag}</span>}
-                    <span className="text-xs font-medium text-gray-700 truncate max-w-[100px]">{c.country ?? c.country_code}</span>
+                    <span className="text-xs font-medium text-muted truncate max-w-[100px]">{c.country ?? c.country_code}</span>
                   </div>
-                  <span className="text-xs font-semibold text-gray-900 flex-shrink-0">{c.percentage}%</span>
+                  <span className="text-xs font-semibold text-ink flex-shrink-0">{c.percentage}%</span>
                 </div>
-                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-guava-400 rounded-full" style={{ width: `${c.percentage}%` }} />
+                <div className="h-1.5 bg-surface/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-lime rounded-full" style={{ width: `${c.percentage}%` }} />
                 </div>
               </div>
             ))}
@@ -215,15 +215,15 @@ export default function Overview({ period }: OverviewProps) {
           {[
             { label: 'Total Users',   value: formatNumber(health.total_users),                       icon: Users,          color: 'text-purple-500' },
             { label: 'Total Volume',  value: formatCurrency(health.total_volume, { compact: true }),  icon: DollarSign,     color: 'text-blue-500'   },
-            { label: 'Total Revenue', value: formatCurrency(health.total_revenue, { decimals: 2 }),   icon: TrendingUp,     color: 'text-guava-600'  },
+            { label: 'Total Revenue', value: formatCurrency(health.total_revenue, { decimals: 2 }),   icon: TrendingUp,     color: 'text-lime'  },
             { label: 'Total Txns',    value: formatNumber(health.total_transactions),                 icon: ArrowLeftRight, color: 'text-orange-500' },
           ].map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="text-center">
               <div className={`flex items-center justify-center mb-2 ${color}`}>
                 <Icon size={22} strokeWidth={1.5} />
               </div>
-              <p className="text-lg font-bold text-gray-900">{value}</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
+              <p className="text-lg font-bold text-ink">{value}</p>
+              <p className="text-[10px] text-faint mt-0.5">{label}</p>
             </div>
           ))}
         </div>
