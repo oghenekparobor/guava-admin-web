@@ -79,10 +79,10 @@ export default function Overview({ period }: OverviewProps) {
       )}
 
       {latestBT.success_rate_percentage === 0 && bankTransfers.length > 0 && (
-        <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm">
-          <AlertTriangle size={16} className="text-amber-600 flex-shrink-0" />
-          <span className="font-semibold text-amber-800">Bank transfer success rate is 0%.</span>
-          <span className="text-amber-700 ml-1">Remediation underway: new payout partner + automated retries.</span>
+        <div className="flex items-center gap-3 bg-warning/15 border border-warning/30 rounded-xl px-4 py-3 text-sm">
+          <AlertTriangle size={16} className="text-warning flex-shrink-0" />
+          <span className="font-semibold text-warning">Bank transfer success rate is 0%.</span>
+          <span className="text-warning ml-1">Remediation underway: new payout partner + automated retries.</span>
         </div>
       )}
 
@@ -90,16 +90,16 @@ export default function Overview({ period }: OverviewProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard loading={hL} title="Total Volume"    value={formatCurrency(health.total_volume,  { compact: true })}
           change={pct(latest.total_volume  ?? 0, prev.total_volume  ?? 0)} changeLabel="vs last month"
-          icon={DollarSign}     iconBg="bg-blue-50"   iconColor="text-blue-600"   />
+          icon={DollarSign}     iconBg="bg-info/15"   iconColor="text-info"   />
         <MetricCard loading={hL} title="Revenue (30d)"   value={formatCurrency(health.revenue_30d,  { decimals: 2 })}
           change={pct(latest.total_revenue ?? 0, prev.total_revenue ?? 0)} changeLabel="vs last month"
           icon={TrendingUp}     iconBg="bg-lime/15"  iconColor="text-lime"  />
         <MetricCard loading={hL} title="Active Users (30d)" value={formatNumber(health.active_users_30d)}
           change={pct(latestUG.new_users ?? 0, prevUG.new_users ?? 0)} changeLabel="vs last month"
-          icon={Users}          iconBg="bg-purple-50" iconColor="text-purple-600" />
+          icon={Users}          iconBg="bg-white/10" iconColor="text-[#C2B6F0]" />
         <MetricCard loading={hL} title="Transactions (30d)" value={formatNumber(health.transactions_30d)}
           change={pct(latest.total_transactions ?? 0, prev.total_transactions ?? 0)} changeLabel="vs last month"
-          icon={ArrowLeftRight} iconBg="bg-orange-50" iconColor="text-orange-600" />
+          icon={ArrowLeftRight} iconBg="bg-warning/15" iconColor="text-warning" />
       </div>
 
       {/* Charts row */}
@@ -131,7 +131,7 @@ export default function Overview({ period }: OverviewProps) {
           <div className="space-y-4">
             {[
               { label: 'Uptime',     value: `${health.uptime_percentage}%`, dot: 'bg-positive animate-pulse' },
-              { label: 'Error Rate', value: `${health.error_rate}%`,        dot: 'bg-amber-400' },
+              { label: 'Error Rate', value: `${health.error_rate}%`,        dot: 'bg-warning' },
             ].map(r => (
               <div key={r.label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -143,8 +143,8 @@ export default function Overview({ period }: OverviewProps) {
             ))}
             {[
               { label: 'Total Users',    value: health.total_users,          icon: CheckCircle2, color: 'text-lime'  },
-              { label: 'KYC (30d)',      value: health.kyc_submissions_30d,  icon: Activity,     color: 'text-blue-500'   },
-              { label: 'Deposits (30d)', value: health.deposits_30d,          icon: Activity,     color: 'text-purple-500' },
+              { label: 'KYC (30d)',      value: health.kyc_submissions_30d,  icon: Activity,     color: 'text-info'   },
+              { label: 'Deposits (30d)', value: health.deposits_30d,          icon: Activity,     color: 'text-[#C2B6F0]' },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -154,6 +154,23 @@ export default function Overview({ period }: OverviewProps) {
                 <span className="text-sm font-bold text-ink">{formatNumber(value)}</span>
               </div>
             ))}
+
+            {/* Deposit volume (30d) by currency */}
+            {Object.keys(health.deposit_volume_30d_by_currency ?? {}).length > 0 && (
+              <div className="pt-2 border-t border-border">
+                <p className="text-xs font-semibold text-muted mb-2.5">Deposits 30d · by currency</p>
+                <div className="space-y-1.5">
+                  {Object.entries(health.deposit_volume_30d_by_currency).map(([cur, amt]) => (
+                    <div key={cur} className="flex items-center gap-2">
+                      <span className="text-[10px] text-muted flex-1">{cur}</span>
+                      <span className="text-[10px] font-semibold text-ink">
+                        {cur === 'NGN' ? '₦' + formatNumber(amt as number) : formatCurrency(amt as number, { decimals: 2 })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* KYC status mini */}
             {!kycL && kycDist.length > 0 && (
@@ -200,7 +217,7 @@ export default function Overview({ period }: OverviewProps) {
                   </div>
                   <span className="text-xs font-semibold text-ink flex-shrink-0">{c.percentage}%</span>
                 </div>
-                <div className="h-1.5 bg-surface/10 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                   <div className="h-full bg-lime rounded-full" style={{ width: `${c.percentage}%` }} />
                 </div>
               </div>
@@ -213,10 +230,10 @@ export default function Overview({ period }: OverviewProps) {
       <ChartCard loading={hL} title="Lifetime Stats" subtitle="All-time platform totals">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
-            { label: 'Total Users',   value: formatNumber(health.total_users),                       icon: Users,          color: 'text-purple-500' },
-            { label: 'Total Volume',  value: formatCurrency(health.total_volume, { compact: true }),  icon: DollarSign,     color: 'text-blue-500'   },
+            { label: 'Total Users',   value: formatNumber(health.total_users),                       icon: Users,          color: 'text-[#C2B6F0]' },
+            { label: 'Total Volume',  value: formatCurrency(health.total_volume, { compact: true }),  icon: DollarSign,     color: 'text-info'   },
             { label: 'Total Revenue', value: formatCurrency(health.total_revenue, { decimals: 2 }),   icon: TrendingUp,     color: 'text-lime'  },
-            { label: 'Total Txns',    value: formatNumber(health.total_transactions),                 icon: ArrowLeftRight, color: 'text-orange-500' },
+            { label: 'Total Txns',    value: formatNumber(health.total_transactions),                 icon: ArrowLeftRight, color: 'text-warning' },
           ].map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="text-center">
               <div className={`flex items-center justify-center mb-2 ${color}`}>

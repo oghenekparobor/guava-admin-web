@@ -82,7 +82,7 @@ export default function Users({ period }: UsersProps) {
           change={pct(latestMAU.monthly_active_users ?? 0, prevMAU.monthly_active_users ?? 0)}
           changeLabel="vs last month"
           icon={Activity}
-          iconBg="bg-blue-50" iconColor="text-blue-600"
+          iconBg="bg-info/15" iconColor="text-info"
         />
         <MetricCard loading={retL}
           title="Retention Rate"
@@ -90,7 +90,7 @@ export default function Users({ period }: UsersProps) {
           change={(latestRet.retention_rate_percentage ?? 0) - (prevRet.retention_rate_percentage ?? 0)}
           changeLabel="vs last month"
           icon={RefreshCw}
-          iconBg="bg-purple-50" iconColor="text-purple-600"
+          iconBg="bg-white/10" iconColor="text-[#C2B6F0]"
         />
         <MetricCard loading={mauL}
           title="Avg Txns / User"
@@ -98,7 +98,7 @@ export default function Users({ period }: UsersProps) {
           change={pct(latestMAU.avg_transactions_per_user ?? 0, prevMAU.avg_transactions_per_user ?? 0)}
           changeLabel="vs last month"
           icon={UserCheck}
-          iconBg="bg-orange-50" iconColor="text-orange-600"
+          iconBg="bg-warning/15" iconColor="text-warning"
         />
       </div>
 
@@ -192,7 +192,7 @@ export default function Users({ period }: UsersProps) {
                 const mau = mauData.find((m: any) => m.month === row.month)
                 const ret = retentionData.find((r: any) => r.month === row.month)
                 return (
-                  <tr key={row.month} className="hover:bg-surface/5/50 transition-colors">
+                  <tr key={row.month} className="hover:bg-white/5 transition-colors">
                     <td className="py-2.5 pr-6 font-semibold text-muted">{row.label}</td>
                     <td className="py-2.5 pr-6 font-semibold text-ink">{row.new_users}</td>
                     <td className="py-2.5 pr-6">

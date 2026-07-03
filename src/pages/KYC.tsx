@@ -68,14 +68,14 @@ export default function KYC({ period: _period }: KYCProps) {
           value={formatNumber(verified.user_count)}
           subtitle={`${verified.percentage}% of all users`}
           icon={ShieldCheck}
-          iconBg="bg-blue-50" iconColor="text-blue-600"
+          iconBg="bg-info/15" iconColor="text-info"
         />
         <MetricCard loading={ksdL}
           title="Pending Pipeline"
           value={formatNumber((pending.user_count ?? 0) + (notStarted.user_count ?? 0))}
           subtitle={`${((pending.percentage ?? 0) + (notStarted.percentage ?? 0)).toFixed(1)}% pipeline opportunity`}
           icon={Clock}
-          iconBg="bg-amber-50" iconColor="text-amber-600"
+          iconBg="bg-warning/15" iconColor="text-warning"
         />
         <MetricCard loading={kmsL}
           title="Countries Served"
@@ -83,7 +83,7 @@ export default function KYC({ period: _period }: KYCProps) {
           change={(latest.countries_served ?? 0) - (prev.countries_served ?? 0)}
           changeLabel="new countries this month"
           icon={Globe}
-          iconBg="bg-purple-50" iconColor="text-purple-600"
+          iconBg="bg-white/10" iconColor="text-[#C2B6F0]"
         />
       </div>
 
@@ -147,25 +147,26 @@ export default function KYC({ period: _period }: KYCProps) {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border">
-                {['Month','Total','Approved','Rejected','Pending','Approval Rate','Countries'].map(h => (
+                {['Month','Total','Approved','Rejected','Pending','Approval Rate','Countries','Unknown'].map(h => (
                   <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-6">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {[...kycMonthlyStats].reverse().map((row: any) => (
-                <tr key={row.month} className="hover:bg-surface/5/50 transition-colors">
+                <tr key={row.month} className="hover:bg-white/5 transition-colors">
                   <td className="py-2.5 pr-6 font-semibold text-muted">{row.label}</td>
                   <td className="py-2.5 pr-6">{row.total_verifications}</td>
                   <td className="py-2.5 pr-6 text-lime font-semibold">{row.approved}</td>
-                  <td className="py-2.5 pr-6 text-red-500">{row.rejected}</td>
-                  <td className="py-2.5 pr-6 text-amber-600">{row.pending}</td>
+                  <td className="py-2.5 pr-6 text-negative">{row.rejected}</td>
+                  <td className="py-2.5 pr-6 text-warning">{row.pending}</td>
                   <td className="py-2.5 pr-6">
                     <span className={row.approval_rate_percentage >= 80 ? 'badge-positive' : row.approval_rate_percentage >= 50 ? 'badge-warning' : 'badge-negative'}>
                       {row.approval_rate_percentage}%
                     </span>
                   </td>
                   <td className="py-2.5 pr-6">{row.countries_served}</td>
+                  <td className="py-2.5 pr-6 text-faint">{row.countries_unknown ?? 0}</td>
                 </tr>
               ))}
             </tbody>

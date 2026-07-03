@@ -11,7 +11,7 @@ import { formatCurrency, formatNumber, CHART_COLORS } from '../lib/utils'
 import {
   HAS_API,
   useWeeklyRevenue, useMonthlyRevenue, useQuarterlyRevenue,
-  useMonthlyVolume, useBankTransfers,
+  useMonthlyVolume, useBankTransfers, useDepositsByChannel,
 } from '../hooks/useDashboardData'
 
 const TT = ({ active, payload, label }: any) => {
@@ -44,6 +44,11 @@ export default function Transactions({ period }: TxProps) {
   const { data: quarterlyRevenue, loading: qrL               } = useQuarterlyRevenue()
   const { data: monthlyVolume,    loading: mvL               } = useMonthlyVolume()
   const { data: bankTransfers,    loading: btL               } = useBankTransfers()
+  const { data: depositsByChannel, loading: dcL              } = useDepositsByChannel()
+
+  // Latest-month category breakdown (labeled by denomination).
+  const latestMonth = monthlyVolume.length ? monthlyVolume[monthlyVolume.length - 1].month : null
+  const latestCategories = monthlyVolume.filter((d: any) => d.month === latestMonth)
 
   const isChartLoading =
     period === 'weekly'    ? wrL :
@@ -77,7 +82,7 @@ export default function Transactions({ period }: TxProps) {
           change={pct(latest.total_transactions ?? 0, prev.total_transactions ?? 0)}
           changeLabel="vs last month"
           icon={ArrowLeftRight}
-          iconBg="bg-blue-50" iconColor="text-blue-600"
+          iconBg="bg-info/15" iconColor="text-info"
         />
         <MetricCard loading={mrL}
           title="Total Volume (30d)"
@@ -93,7 +98,7 @@ export default function Transactions({ period }: TxProps) {
           change={pct(latest.avg_transaction_amount ?? 0, prev.avg_transaction_amount ?? 0)}
           changeLabel="vs last month"
           icon={CheckCircle2}
-          iconBg="bg-purple-50" iconColor="text-purple-600"
+          iconBg="bg-white/10" iconColor="text-[#C2B6F0]"
         />
         <MetricCard loading={btL}
           title="Bank Transfer Success"
@@ -101,7 +106,7 @@ export default function Transactions({ period }: TxProps) {
           change={(latestB.success_rate_percentage ?? 0) - (prevB.success_rate_percentage ?? 0)}
           changeLabel="vs last month"
           icon={AlertCircle}
-          iconBg="bg-red-50" iconColor="text-red-500"
+          iconBg="bg-negative/15" iconColor="text-negative"
         />
       </div>
 
@@ -189,7 +194,7 @@ export default function Transactions({ period }: TxProps) {
             </thead>
             <tbody className="divide-y divide-border">
               {[...monthlyRevenue].reverse().map((row: any) => (
-                <tr key={row.month} className="hover:bg-surface/5/50 transition-colors">
+                <tr key={row.month} className="hover:bg-white/5 transition-colors">
                   <td className="py-2.5 pr-6 font-semibold text-muted">{row.label}</td>
                   <td className="py-2.5 pr-6">{formatNumber(row.total_transactions ?? 0)}</td>
                   <td className="py-2.5 pr-6 font-mono">{formatCurrency(row.total_volume ?? 0, { compact: true })}</td>
@@ -203,6 +208,64 @@ export default function Transactions({ period }: TxProps) {
           </table>
         </div>
       </ChartCard>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ChartCard loading={dcL} title="Deposits by Channel" subtitle="Unified PAJ + Bridge, per currency">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border">
+                  {['Channel','Cur','Count','Amount','30d','Success'].map(h => (
+                    <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-4">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {depositsByChannel.map((row: any) => (
+                  <tr key={`${row.channel}-${row.currency}`} className="hover:bg-white/5 transition-colors">
+                    <td className="py-2.5 pr-4 font-semibold text-ink">{row.channel}</td>
+                    <td className="py-2.5 pr-4 text-muted">{row.currency}</td>
+                    <td className="py-2.5 pr-4">{formatNumber(row.total_count ?? 0)}</td>
+                    <td className="py-2.5 pr-4 font-mono">{row.currency === 'NGN' ? '₦' + formatNumber(row.total_amount ?? 0) : formatCurrency(row.total_amount ?? 0, { decimals: 2 })}</td>
+                    <td className="py-2.5 pr-4 text-muted">{formatNumber(row.count_30d ?? 0)}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className={(row.success_rate_percentage ?? 0) >= 90 ? 'badge-positive' : 'badge-warning'}>{row.success_rate_percentage}%</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </ChartCard>
+
+        <ChartCard loading={mvL} title="Category Volume by Denomination"
+          subtitle={latestMonth ? `Latest month · ${latestMonth}` : undefined}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border">
+                  {['Category','Denomination','Count','Volume','Fees'].map(h => (
+                    <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-4">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {latestCategories.map((row: any, i: number) => (
+                  <tr key={i} className="hover:bg-white/5 transition-colors">
+                    <td className="py-2.5 pr-4 font-semibold text-ink">{row.transaction_category}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className={row.denomination === 'USDC' ? 'badge-positive' : 'badge-neutral'}>{row.denomination}</span>
+                    </td>
+                    <td className="py-2.5 pr-4">{formatNumber(row.transaction_count ?? 0)}</td>
+                    <td className="py-2.5 pr-4 font-mono">{row.denomination === 'NGN' ? '₦' + formatNumber(row.total_volume ?? 0) : formatCurrency(row.total_volume ?? 0, { decimals: 2 })}</td>
+                    <td className="py-2.5 pr-4 font-mono text-muted">{formatCurrency(row.total_fees ?? 0, { decimals: 2 })}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </ChartCard>
+      </div>
     </div>
   )
 }

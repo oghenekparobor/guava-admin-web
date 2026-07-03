@@ -11,6 +11,7 @@ const PAGE_TITLES: Record<Page, string> = {
   kyc:          'KYC & Verification',
   geography:    'Geography',
   cohort:       'Cohort Analysis',
+  notifications: 'Notifications',
 }
 
 const PERIODS: { value: Period; label: string }[] = [
@@ -21,7 +22,7 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: 'annual',    label: 'Y' },
 ]
 
-const NO_PERIOD: Page[] = ['geography']
+const NO_PERIOD: Page[] = ['geography', 'notifications']
 
 interface HeaderProps {
   currentPage: Page

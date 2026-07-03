@@ -67,9 +67,9 @@ export default function Revenue({ period }: RevenueProps) {
 
   const rrCards = [
     { label: 'MRR',  sublabel: 'Monthly Revenue Run Rate',   value: formatCurrency(runRates.mrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'Last full month',  color: 'text-lime',  bg: 'bg-lime/15'  },
-    { label: 'ARR',  sublabel: 'Annual Revenue Run Rate',     value: formatCurrency(runRates.arr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'MRR × 12',        color: 'text-blue-600',   bg: 'bg-blue-50'   },
-    { label: 'QRR',  sublabel: 'Quarterly Revenue Run Rate',  value: formatCurrency(runRates.qrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'MRR × 3',         color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'WRR',  sublabel: 'Weekly Revenue Run Rate',     value: formatCurrency(runRates.wrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'Weekly avg × 52', color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'ARR',  sublabel: 'Annual Revenue Run Rate',     value: formatCurrency(runRates.arr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'MRR × 12',        color: 'text-info',   bg: 'bg-info/15'   },
+    { label: 'QRR',  sublabel: 'Quarterly Revenue Run Rate',  value: formatCurrency(runRates.qrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'MRR × 3',         color: 'text-[#C2B6F0]', bg: 'bg-white/10' },
+    { label: 'WRR',  sublabel: 'Weekly Revenue Run Rate',     value: formatCurrency(runRates.wrr,  { decimals: 2 }), change: runRates.mrr_growth, desc: 'Weekly avg × 52', color: 'text-warning', bg: 'bg-warning/15' },
   ]
 
   return (
@@ -82,9 +82,9 @@ export default function Revenue({ period }: RevenueProps) {
           <div key={r.label} className={cn('card-hover p-5', rrL && 'animate-pulse')}>
             {rrL ? (
               <>
-                <div className="w-10 h-5 bg-surface/10 rounded mb-3" />
-                <div className="h-7 w-24 bg-surface/10 rounded mb-2" />
-                <div className="h-3 w-32 bg-surface/10 rounded" />
+                <div className="w-10 h-5 bg-white/10 rounded mb-3" />
+                <div className="h-7 w-24 bg-white/10 rounded mb-2" />
+                <div className="h-3 w-32 bg-white/10 rounded" />
               </>
             ) : (
               <>
@@ -92,7 +92,7 @@ export default function Revenue({ period }: RevenueProps) {
                   <span className={cn('text-xs font-bold px-2 py-0.5 rounded-lg', r.bg, r.color)}>{r.label}</span>
                   {r.change > 0
                     ? <ArrowUpRight size={14} className="text-lime" />
-                    : <ArrowDownRight size={14} className="text-red-500" />
+                    : <ArrowDownRight size={14} className="text-negative" />
                   }
                 </div>
                 <p className="text-2xl font-bold text-ink leading-none">{r.value}</p>
@@ -113,7 +113,7 @@ export default function Revenue({ period }: RevenueProps) {
         ].map(r => (
           <div key={r.label} className={cn('card-hover p-5', rrL && 'animate-pulse')}>
             {rrL ? (
-              <><div className="h-3 w-32 bg-surface/10 rounded mb-2" /><div className="h-7 w-20 bg-surface/10 rounded" /></>
+              <><div className="h-3 w-32 bg-white/10 rounded mb-2" /><div className="h-7 w-20 bg-white/10 rounded" /></>
             ) : (
               <>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-faint mb-2">{r.label}</p>
@@ -169,7 +169,7 @@ export default function Revenue({ period }: RevenueProps) {
                   <div key={d.name} className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CURRENCY_COLORS[d.name] ?? CHART_COLORS.gray }} />
                     <span className="text-xs font-semibold text-muted w-10">{d.name}</span>
-                    <div className="flex-1 h-1.5 bg-surface/10 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${d.pct}%`, background: CURRENCY_COLORS[d.name] ?? CHART_COLORS.gray }} />
                     </div>
                     <span className="text-xs text-muted w-10 text-right">{d.pct}%</span>
@@ -203,21 +203,25 @@ export default function Revenue({ period }: RevenueProps) {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border">
-                {['Month','Revenue','Volume','Transactions','Active Users','Rev/User','Avg Txn'].map(h => (
+                {['Month','Revenue (USDC)','Volume (USDC)','Fiat (NGN)','Transactions','Active Users','Rev/User','Avg Fee'].map(h => (
                   <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-4">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {[...monthlyRevenue].reverse().map((row: any) => (
-                <tr key={row.month} className="hover:bg-surface/5/50 transition-colors">
-                  <td className="py-2.5 pr-4 font-semibold text-muted">{row.label}</td>
+                <tr key={row.month} className="hover:bg-white/5 transition-colors">
+                  <td className="py-2.5 pr-4 font-semibold text-muted whitespace-nowrap">
+                    {row.label}
+                    {row.is_partial && <span className="ml-1.5 badge-neutral">partial</span>}
+                  </td>
                   <td className="py-2.5 pr-4 font-mono">{formatCurrency(row.total_revenue ?? 0, { decimals: 2 })}</td>
                   <td className="py-2.5 pr-4 font-mono">{formatCurrency(row.total_volume ?? 0,  { compact: true })}</td>
+                  <td className="py-2.5 pr-4 font-mono text-muted">{row.fiat_volume_ngn != null ? '₦' + formatNumber(row.fiat_volume_ngn) : '—'}</td>
                   <td className="py-2.5 pr-4">{formatNumber(row.total_transactions ?? 0)}</td>
                   <td className="py-2.5 pr-4">{row.active_users ?? '—'}</td>
                   <td className="py-2.5 pr-4 font-mono">{row.revenue_per_user != null ? formatCurrency(row.revenue_per_user, { decimals: 2 }) : '—'}</td>
-                  <td className="py-2.5 pr-4 font-mono">{row.avg_transaction_amount != null ? formatCurrency(row.avg_transaction_amount, { compact: true }) : '—'}</td>
+                  <td className="py-2.5 pr-4 font-mono">{row.avg_fee_per_transaction != null ? formatCurrency(row.avg_fee_per_transaction, { decimals: 2 }) : '—'}</td>
                 </tr>
               ))}
             </tbody>

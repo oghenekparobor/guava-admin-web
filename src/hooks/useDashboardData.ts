@@ -1,13 +1,18 @@
 /**
- * All dashboard data hooks — real API only, no mock fallback.
- * Set VITE_API_BASE_URL in .env.local to connect.
+ * All dashboard data hooks.
+ *
+ * The api layer (src/lib/api.ts) falls back to spec-shaped mocks per endpoint,
+ * so hooks always resolve to data — real when the backend is reachable, mock
+ * otherwise. `HAS_API` stays exported (true) so pages keep their guard call
+ * sites, but the dashboard always renders.
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { api } from '../lib/api'
 import { shortMonth } from '../lib/utils'
 
-export const HAS_API = Boolean(import.meta.env.VITE_API_BASE_URL)
+// Data is always available (mock fallback), so pages never show NoApiState.
+export const HAS_API = true
 
 // ── Base hook ─────────────────────────────────────────────────────────────────
 
@@ -16,12 +21,11 @@ function useData<T>(
   empty: T,
 ): { data: T; loading: boolean; error: string | null; refetch: () => void } {
   const [data, setData]       = useState<T>(empty)
-  const [loading, setLoading] = useState(HAS_API)
+  const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
   const mounted               = useRef(true)
 
   const load = useCallback(async () => {
-    if (!HAS_API) { setLoading(false); return }
     setLoading(true)
     setError(null)
     try {
@@ -174,7 +178,16 @@ export function useMonthlyVolume() {
   return useData(async () => withMonthLabel(await api.monthlyVolume()), EMPTY)
 }
 export function useVolumeOverTime() {
-  return useData(() => api.volumeOverTime(), EMPTY)
+  return useData(async () => {
+    const res = await api.volumeOverTime()
+    return (res.results ?? []).map((i: any) => {
+      const d = new Date(i.transaction_day)
+      return { ...i, label: `${d.toLocaleString('en', { month: 'short' })} ${d.getDate()}` }
+    })
+  }, EMPTY)
+}
+export function useDepositsByChannel() {
+  return useData(() => api.depositsByChannel(), EMPTY)
 }
 export function useCategoryComparison() {
   return useData(() => api.categoryComparison(), EMPTY)
@@ -187,6 +200,16 @@ export function useSourceAnalysis() {
 
 export function useGeography() {
   return useData(() => api.userDistribution(), EMPTY)
+}
+
+export type KycGeo = {
+  results: { country: string; user_count: number; percentage: number }[]
+  coverage: { users_with_kyc_geo: number; total_users: number }
+}
+const EMPTY_KYC_GEO: KycGeo = { results: [], coverage: { users_with_kyc_geo: 0, total_users: 0 } }
+
+export function useGeographyByKyc() {
+  return useData(() => api.geographyByKyc() as Promise<KycGeo>, EMPTY_KYC_GEO)
 }
 
 // ── Cohort ────────────────────────────────────────────────────────────────────
@@ -212,6 +235,7 @@ export function useBankTransfers() {
 export type PlatformHealth = {
   new_users_30d: number; active_users_30d: number; transactions_30d: number
   revenue_30d: number; kyc_submissions_30d: number; deposits_30d: number
+  deposit_volume_30d_by_currency: Record<string, number>
   uptime_percentage: number; error_rate: number
   total_users: number; total_volume: number; total_revenue: number; total_transactions: number
 }
@@ -219,6 +243,7 @@ export type PlatformHealth = {
 const EMPTY_HEALTH: PlatformHealth = {
   new_users_30d: 0, active_users_30d: 0, transactions_30d: 0,
   revenue_30d: 0, kyc_submissions_30d: 0, deposits_30d: 0,
+  deposit_volume_30d_by_currency: {},
   uptime_percentage: 0, error_rate: 0,
   total_users: 0, total_volume: 0, total_revenue: 0, total_transactions: 0,
 }
@@ -226,7 +251,7 @@ const EMPTY_HEALTH: PlatformHealth = {
 export function usePlatformHealth() {
   return useData(
     async () => {
-      const h = await api.platformHealth() as Record<string, number>
+      const h = await api.platformHealth() as Record<string, any>
       return {
         new_users_30d:       h.new_users_30d       ?? 0,
         active_users_30d:    h.active_users_30d    ?? 0,
@@ -234,6 +259,7 @@ export function usePlatformHealth() {
         revenue_30d:         h.revenue_30d         ?? 0,
         kyc_submissions_30d: h.kyc_submissions_30d ?? 0,
         deposits_30d:        h.deposits_30d        ?? 0,
+        deposit_volume_30d_by_currency: h.deposit_volume_30d_by_currency ?? {},
         uptime_percentage:   h.uptime_percentage   ?? 0,
         error_rate:          h.error_rate          ?? 0,
         total_users:         h.total_users         ?? 0,

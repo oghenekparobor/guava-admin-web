@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, TrendingUp, ArrowLeftRight, Users,
   ShieldCheck, Globe, BarChart3, Settings, LogOut,
-  Wallet, ChevronRight, X,
+  Wallet, ChevronRight, X, Bell,
 } from 'lucide-react'
 import type { Page } from '../App'
 import { cn } from '../lib/utils'
@@ -32,6 +32,12 @@ const NAV = [
     items: [
       { id: 'geography',     icon: Globe,           label: 'Geography'      },
       { id: 'cohort',        icon: BarChart3,       label: 'Cohort Analysis'},
+    ],
+  },
+  {
+    label: 'ENGAGE',
+    items: [
+      { id: 'notifications', icon: Bell,            label: 'Notifications'  },
     ],
   },
 ] as const
