@@ -51,7 +51,7 @@ export default function Geography() {
     <div className="page-enter space-y-5">
       {gE && <ErrorBanner message={gE} onRetry={gR} />}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard loading={gL}
           title="Countries Served"
           value={formatNumber(geographyDistribution.length)}
@@ -82,8 +82,8 @@ export default function Geography() {
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <ChartCard loading={gL} title="Top 10 Countries" subtitle="By user count" className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartCard loading={gL} title="Top 10 Countries" subtitle="By user count" className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={top10} layout="vertical" margin={{ top: 4, right: 16, bottom: 0, left: 8 }}>
               <CartesianGrid horizontal={false} stroke="#38564F" />

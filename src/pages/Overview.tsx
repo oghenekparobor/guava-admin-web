@@ -87,7 +87,7 @@ export default function Overview({ period }: OverviewProps) {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard loading={hL} title="Total Volume"    value={formatCurrency(health.total_volume,  { compact: true })}
           change={pct(latest.total_volume  ?? 0, prev.total_volume  ?? 0)} changeLabel="vs last month"
           icon={DollarSign}     iconBg="bg-blue-50"   iconColor="text-blue-600"   />
@@ -103,10 +103,10 @@ export default function Overview({ period }: OverviewProps) {
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <ChartCard loading={mrL || wrL} title="Transaction Volume"
           subtitle={period === 'weekly' ? '12-week' : period === 'quarterly' ? 'quarterly' : '6-month'}
-          className="col-span-2">
+          className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={volumeData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
               <defs>
@@ -175,8 +175,8 @@ export default function Overview({ period }: OverviewProps) {
       </div>
 
       {/* Growth + Geography */}
-      <div className="grid grid-cols-3 gap-4">
-        <ChartCard loading={mgL} title="User Growth" subtitle="New signups per period" className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartCard loading={mgL} title="User Growth" subtitle="New signups per period" className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={growthData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
               <CartesianGrid vertical={false} stroke="#38564F" />
@@ -211,7 +211,7 @@ export default function Overview({ period }: OverviewProps) {
 
       {/* Lifetime stats */}
       <ChartCard loading={hL} title="Lifetime Stats" subtitle="All-time platform totals">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { label: 'Total Users',   value: formatNumber(health.total_users),                       icon: Users,          color: 'text-purple-500' },
             { label: 'Total Volume',  value: formatCurrency(health.total_volume, { compact: true }),  icon: DollarSign,     color: 'text-blue-500'   },

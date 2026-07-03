@@ -54,7 +54,7 @@ export default function KYC({ period: _period }: KYCProps) {
     <div className="page-enter space-y-5">
       {kmsE && <ErrorBanner message={kmsE} onRetry={kmsR} />}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard loading={kmsL}
           title="Approval Rate (latest)"
           value={`${latest.approval_rate_percentage ?? 0}%`}
@@ -87,8 +87,8 @@ export default function KYC({ period: _period }: KYCProps) {
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <ChartCard loading={kmsL} title="Approval Rate Trend" subtitle="Monthly improvement" className="col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <ChartCard loading={kmsL} title="Approval Rate Trend" subtitle="Monthly improvement" className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={kycMonthlyStats} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
               <CartesianGrid vertical={false} stroke="#38564F" />

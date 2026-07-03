@@ -45,7 +45,7 @@ export default function Cohort({ period: _period }: CohortProps) {
     <div className="page-enter space-y-5">
       {cE && <ErrorBanner message={cE} onRetry={cR} />}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard loading={cL}
           title="Best Cohort LTV"
           value={formatCurrency(bestCohort.lifetime_value ?? 0, { decimals: 2 })}
@@ -76,7 +76,7 @@ export default function Cohort({ period: _period }: CohortProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartCard loading={cL} title="Lifetime Value by Cohort" subtitle="Revenue earned per user">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={cohortMonthly} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>

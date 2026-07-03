@@ -77,7 +77,7 @@ export default function Revenue({ period }: RevenueProps) {
       {errors.length > 0 && <ErrorBanner message={errors[0]!} />}
 
       {/* Run rate cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {rrCards.map(r => (
           <div key={r.label} className={cn('card-hover p-5', rrL && 'animate-pulse')}>
             {rrL ? (
@@ -105,7 +105,7 @@ export default function Revenue({ period }: RevenueProps) {
       </div>
 
       {/* Volume run rates */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {[
           { label: 'Monthly Volume Run Rate',  value: formatCurrency(runRates.mvrr,  { compact: true }), sub: 'Based on latest month' },
           { label: 'Annual Volume Run Rate',    value: formatCurrency(runRates.avrr,  { compact: true }), sub: 'Monthly × 12'          },
@@ -150,7 +150,7 @@ export default function Revenue({ period }: RevenueProps) {
       </ChartCard>
 
       {/* Breakdown */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartCard loading={rcL} title="Revenue by Currency" subtitle="Latest period breakdown">
           {currencyPieData.length > 0 ? (
             <div className="flex items-start gap-4">

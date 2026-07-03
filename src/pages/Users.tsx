@@ -67,7 +67,7 @@ export default function Users({ period }: UsersProps) {
     <div className="page-enter space-y-5">
       {mgE && <ErrorBanner message={mgE} onRetry={mgR} />}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard loading={phL || mgL}
           title="Total Signups"
           value={formatNumber(platformHealth.total_users)}
@@ -102,7 +102,7 @@ export default function Users({ period }: UsersProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartCard loading={isGrowthLoading} title="New User Signups" subtitle="Growth per period">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={growthData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
@@ -137,7 +137,7 @@ export default function Users({ period }: UsersProps) {
         </ChartCard>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartCard loading={mauL} title="Monthly Active Users (MAU)" subtitle="Active users + avg transactions/user">
           <ResponsiveContainer width="100%" height={180}>
             <ComposedChart data={mauData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>

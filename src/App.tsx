@@ -17,6 +17,7 @@ export type Period  = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual'
 function Dashboard() {
   const [currentPage, setCurrentPage] = useState<Page>('overview')
   const [period, setPeriod]           = useState<Period>('monthly')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const renderPage = () => {
     switch (currentPage) {
@@ -32,12 +33,31 @@ function Dashboard() {
 
   return (
     <div className="flex h-screen bg-canvas overflow-hidden font-sans">
-      <Sidebar currentPage={currentPage} onNavigate={(p) => { setCurrentPage(p) }} />
+      {/* Mobile drawer backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      <Sidebar
+        currentPage={currentPage}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onNavigate={(p) => { setCurrentPage(p); setSidebarOpen(false) }}
+      />
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header currentPage={currentPage} period={period} onPeriodChange={setPeriod} />
+        <Header
+          currentPage={currentPage}
+          period={period}
+          onPeriodChange={setPeriod}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
-        <main className="flex-1 overflow-y-auto p-5">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-5">
           {renderPage()}
         </main>
       </div>

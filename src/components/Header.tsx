@@ -1,4 +1,4 @@
-import { Bell, Search, LogOut } from 'lucide-react'
+import { Bell, Search, LogOut, Menu } from 'lucide-react'
 import type { Page, Period } from '../App'
 import { cn } from '../lib/utils'
 import { useAuth } from '../context/AuthContext'
@@ -27,9 +27,10 @@ interface HeaderProps {
   currentPage: Page
   period: Period
   onPeriodChange: (p: Period) => void
+  onMenuClick?: () => void
 }
 
-export default function Header({ currentPage, period, onPeriodChange }: HeaderProps) {
+export default function Header({ currentPage, period, onPeriodChange, onMenuClick }: HeaderProps) {
   const { user, signOut } = useAuth()
   const showPeriod = !NO_PERIOD.includes(currentPage)
 
@@ -39,7 +40,16 @@ export default function Header({ currentPage, period, onPeriodChange }: HeaderPr
     : (user?.email?.[0] ?? 'A').toUpperCase()
 
   return (
-    <header className="flex items-center gap-4 px-6 h-14 bg-canvas border-b border-border flex-shrink-0">
+    <header className="flex items-center gap-3 sm:gap-4 px-3 sm:px-6 h-14 bg-canvas border-b border-border flex-shrink-0">
+      {/* Hamburger (mobile only) */}
+      <button
+        onClick={onMenuClick}
+        className="lg:hidden w-9 h-9 -ml-1 flex items-center justify-center rounded-lg text-muted hover:bg-white/5 hover:text-ink transition-colors flex-shrink-0"
+        aria-label="Open menu"
+      >
+        <Menu size={18} />
+      </button>
+
       {/* Title */}
       <div className="flex-1 min-w-0">
         <h1 className="text-sm font-semibold text-ink truncate">{PAGE_TITLES[currentPage]}</h1>
@@ -66,7 +76,7 @@ export default function Header({ currentPage, period, onPeriodChange }: HeaderPr
 
       {/* Actions */}
       <div className="flex items-center gap-1">
-        <button className="w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:bg-white/5 hover:text-ink transition-colors">
+        <button className="hidden sm:flex w-8 h-8 items-center justify-center rounded-lg text-muted hover:bg-white/5 hover:text-ink transition-colors">
           <Search size={15} />
         </button>
         <button className="relative w-8 h-8 flex items-center justify-center rounded-lg text-muted hover:bg-white/5 hover:text-ink transition-colors">

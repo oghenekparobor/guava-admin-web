@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, TrendingUp, ArrowLeftRight, Users,
   ShieldCheck, Globe, BarChart3, Settings, LogOut,
-  Wallet, ChevronRight,
+  Wallet, ChevronRight, X,
 } from 'lucide-react'
 import type { Page } from '../App'
 import { cn } from '../lib/utils'
@@ -39,20 +39,38 @@ const NAV = [
 interface SidebarProps {
   currentPage: Page
   onNavigate: (page: Page) => void
+  open?: boolean
+  onClose?: () => void
 }
 
-export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
+export default function Sidebar({ currentPage, onNavigate, open = false, onClose }: SidebarProps) {
   return (
-    <aside className="flex flex-col w-[220px] min-w-[220px] h-screen bg-sidebar overflow-y-auto">
+    <aside
+      className={cn(
+        // Off-canvas drawer on mobile; static column on lg+.
+        'flex flex-col w-[240px] min-w-[240px] h-screen bg-sidebar overflow-y-auto',
+        'fixed inset-y-0 left-0 z-50 transform transition-transform duration-200 ease-out',
+        'lg:static lg:z-auto lg:w-[220px] lg:min-w-[220px] lg:translate-x-0',
+        open ? 'translate-x-0' : '-translate-x-full'
+      )}
+    >
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5 border-b border-white/5">
         <div className="w-8 h-8 rounded-xl bg-lime flex items-center justify-center flex-shrink-0">
           <Wallet size={16} className="text-lime-ink" strokeWidth={2.5} />
         </div>
-        <div>
+        <div className="flex-1 min-w-0">
           <p className="text-ink text-sm font-bold leading-none">Guava</p>
           <p className="text-muted text-[10px] mt-0.5">Admin Console</p>
         </div>
+        {/* Close (mobile only) */}
+        <button
+          onClick={onClose}
+          className="lg:hidden w-8 h-8 -mr-1 flex items-center justify-center rounded-lg text-muted hover:bg-white/5 hover:text-ink transition-colors"
+          aria-label="Close menu"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Navigation */}

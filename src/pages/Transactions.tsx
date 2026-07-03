@@ -70,7 +70,7 @@ export default function Transactions({ period }: TxProps) {
     <div className="page-enter space-y-5">
       {mrE && <ErrorBanner message={mrE} onRetry={mrR} />}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard loading={mrL}
           title="Transactions (30d)"
           value={formatNumber(latest.total_transactions ?? 0)}
@@ -125,7 +125,7 @@ export default function Transactions({ period }: TxProps) {
         </ResponsiveContainer>
       </ChartCard>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartCard title="Transaction Types" subtitle="By payment method">
           <div className="flex items-center gap-4 mt-2">
             <ResponsiveContainer width={90} height={90}>
