@@ -12,7 +12,7 @@ function headers(): HeadersInit {
     'X-App-ID': 'finance.guava.web',
   }
   const uid = auth.currentUser?.uid
-  if (uid) h['x-admin-key'] = uid
+  if (uid) h['X-Admin-Key'] = uid
   return h
 }
 
