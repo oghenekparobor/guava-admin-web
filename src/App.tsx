@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import Sidebar from './components/Sidebar'
-import Header from './components/Header'
+import TopBar from './components/TopBar'
+import ChatAssistant from './components/ChatAssistant'
 import Overview from './pages/Overview'
 import Revenue from './pages/Revenue'
 import Transactions from './pages/Transactions'
@@ -18,7 +18,6 @@ export type Period  = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual'
 function Dashboard() {
   const [currentPage, setCurrentPage] = useState<Page>('overview')
   const [period, setPeriod]           = useState<Period>('monthly')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const renderPage = () => {
     switch (currentPage) {
@@ -34,35 +33,17 @@ function Dashboard() {
   }
 
   return (
-    <div className="flex h-screen bg-canvas overflow-hidden font-sans">
-      {/* Mobile drawer backdrop */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      <Sidebar
+    <div className="flex flex-col h-screen bg-canvas overflow-hidden font-sans">
+      <TopBar
         currentPage={currentPage}
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onNavigate={(p) => { setCurrentPage(p); setSidebarOpen(false) }}
+        period={period}
+        onNavigate={setCurrentPage}
+        onPeriodChange={setPeriod}
       />
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header
-          currentPage={currentPage}
-          period={period}
-          onPeriodChange={setPeriod}
-          onMenuClick={() => setSidebarOpen(true)}
-        />
-
-        <main className="flex-1 overflow-y-auto p-3 sm:p-5">
-          {renderPage()}
-        </main>
-      </div>
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        {renderPage()}
+      </main>
+      <ChatAssistant />
     </div>
   )
 }

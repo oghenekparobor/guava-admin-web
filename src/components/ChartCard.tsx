@@ -32,14 +32,14 @@ export default function ChartCard({
 }: ChartCardProps) {
   return (
     <div className={cn('card overflow-hidden', className)}>
-      <div className="flex items-start justify-between px-5 pt-5 pb-0">
-        <div>
-          <h3 className="text-sm font-semibold text-ink">{title}</h3>
+      <div className="flex items-start justify-between px-6 pt-6 pb-0 gap-3">
+        <div className="min-w-0">
+          <h3 className="text-[15px] font-bold text-ink tracking-tight truncate">{title}</h3>
           {subtitle && <p className="text-xs text-faint mt-0.5">{subtitle}</p>}
         </div>
         {action && <div className="flex-shrink-0">{action}</div>}
       </div>
-      <div className={cn('px-5 pb-5 pt-4', bodyClassName)}>
+      <div className={cn('px-6 pb-6 pt-4', bodyClassName)}>
         {loading ? <ChartSkeleton /> : children}
       </div>
     </div>

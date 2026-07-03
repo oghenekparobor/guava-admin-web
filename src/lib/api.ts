@@ -137,6 +137,10 @@ export const api = {
   // Platform health (flat object, no results wrapper)
   platformHealth:      () => get<Record<string, any>>(`${P}/health/overview/`),
 
+  // Fraud + top users (dashboard right column)
+  fraudAlerts:         () => get<{ total_alerts: number; range: string; high_pct: number; medium_pct: number; low_pct: number }>(`${P}/fraud/alerts/`),
+  topUsers:            () => results(`${P}/users/top/`),
+
   // Notifications
   notificationsPreview: (segment: string, limit = 100, offset = 0) =>
     get<{ segment: string; total: number; results: any[] }>(

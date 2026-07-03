@@ -7,6 +7,7 @@ import type { Period } from '../App'
 import ChartCard from '../components/ChartCard'
 import MetricCard from '../components/MetricCard'
 import { NoApiState, ErrorBanner } from '../components/PageState'
+import Subheader from '../components/Subheader'
 import { formatCurrency, formatNumber, CHART_COLORS, CURRENCY_COLORS, cn } from '../lib/utils'
 import {
   HAS_API,
@@ -74,6 +75,7 @@ export default function Revenue({ period }: RevenueProps) {
 
   return (
     <div className="page-enter space-y-5">
+      <Subheader title="Revenue Analytics" />
       {errors.length > 0 && <ErrorBanner message={errors[0]!} />}
 
       {/* Run rate cards */}

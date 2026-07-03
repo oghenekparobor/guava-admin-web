@@ -9,11 +9,37 @@
 }
 
 @layer components {
+  /* Design card language (card-in-card, generous radii) recoloured to dark. */
   .card {
-    @apply bg-surface rounded-2xl border border-border shadow-card;
+    @apply bg-surface rounded-[24px] border border-border shadow-card;
   }
   .card-hover {
-    @apply card transition-all duration-200 hover:border-lime/30 hover:shadow-card-hover;
+    @apply card transition-all duration-200 hover:border-lime/25 hover:shadow-card-hover;
+  }
+  /* Recessed inner panel — the design's #F2F2F2 nested block, dark equivalent. */
+  .dc-panel {
+    @apply bg-canvas rounded-[20px];
+  }
+  /* Circular icon button (header actions). */
+  .icon-btn {
+    @apply w-11 h-11 rounded-full bg-white/5 flex items-center justify-center text-muted hover:text-ink hover:bg-white/10 transition-colors cursor-pointer flex-shrink-0;
+  }
+  /* Small pill control (period / year dropdown triggers). */
+  .dc-control {
+    @apply flex items-center gap-2 bg-white/5 rounded-full h-9 px-4 text-xs font-semibold text-ink cursor-pointer hover:bg-white/10 transition-colors;
+  }
+  /* Top nav pill bar. */
+  .nav-pill-bar {
+    @apply flex items-center gap-1 bg-white/5 rounded-full p-1;
+  }
+  .nav-pill {
+    @apply h-9 px-4 rounded-full text-xs font-semibold flex items-center gap-2 cursor-pointer whitespace-nowrap transition-colors select-none;
+  }
+  .nav-pill-active {
+    @apply bg-lime text-lime-ink;
+  }
+  .nav-pill-inactive {
+    @apply text-muted hover:text-ink hover:bg-white/10;
   }
   .nav-item {
     @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 cursor-pointer select-none;
@@ -43,6 +69,10 @@
     @apply text-muted hover:text-ink hover:bg-white/10;
   }
 }
+
+/* Hide scrollbar (nav pill overflow) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }

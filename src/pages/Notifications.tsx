@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Send, Users, ShieldCheck, RefreshCw, CheckCircle2, Loader2 } from 'lucide-react'
 import ChartCard from '../components/ChartCard'
 import { ErrorBanner } from '../components/PageState'
+import Subheader from '../components/Subheader'
 import { api } from '../lib/api'
 import { formatNumber, cn } from '../lib/utils'
 
@@ -89,6 +90,7 @@ export default function Notifications() {
 
   return (
     <div className="page-enter space-y-5">
+      <Subheader title="Notifications" />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         {/* Left: audience + compose */}
         <div className="lg:col-span-2 space-y-4">

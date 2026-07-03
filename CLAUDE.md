@@ -29,9 +29,15 @@ The app is a single-page client dashboard. There is no router — navigation is 
 
 **Per-endpoint mock fallback.** `src/lib/api.ts` tries the real endpoint first and falls back to spec-shaped mock data (`src/lib/mocks.ts`) on 404 / network error, or serves mocks directly when `VITE_API_BASE_URL` is unset. So the dashboard always renders — endpoints "light up" with real data as the backend ships them. `HAS_API` in `useDashboardData.ts` is therefore `true` (pages never show `NoApiState`). Mock shapes mirror the admin-analytics-overhaul spec (new fields, renames, and the 4 new endpoints); update `mocks.ts` when the backend contract changes.
 
-**Shared UI:** `src/components/` — `Sidebar`, `Header` (owns the period picker), `MetricCard`, `ChartCard`, `PageState` (`NoApiState`/`ErrorState`/`ErrorBanner`).
+**Shared UI:** `src/components/` — `TopBar` (top pill-nav + circular-icon header, owns the period picker; replaced the old `Sidebar`/`Header`), `Subheader` (page title + date + optional system-health), `MetricCard` (design stat-card), `ChartCard` (design section-card), `PageState` (`NoApiState`/`ErrorState`/`ErrorBanner`). The UI follows the "Payments Dashboard" design language (card-in-card, 24px radii, circular icon buttons, pill nav) recoloured to the dark-green/lime brand; reusable classes live in `src/index.css` (`.card`, `.dc-panel`, `.icon-btn`, `.dc-control`, `.nav-pill*`).
 
 **App-wide state** lives entirely in `App.tsx`: `currentPage` (`Page` type) and `period` (`Period` type). Changing `period` remounts the active page via `key={period}` to force a refetch. `Geography` ignores `period`.
+
+## AI assistant (Ask Guava)
+
+`src/components/ChatAssistant.tsx` is a floating chat panel that answers questions about the current dashboard numbers. It calls Claude (`claude-opus-4-8`, streaming) **directly from the browser** via `src/lib/claude.ts` (`@anthropic-ai/sdk`, `dangerouslyAllowBrowser: true`). Context is a compact JSON snapshot gathered once per session from the `api` layer (real or mock). Requires `VITE_CLAUDE_API_KEY`; the launcher hides itself when it's unset.
+
+> ⚠️ **`VITE_CLAUDE_API_KEY` ships in the client bundle** (all `VITE_*` vars are public) — anyone loading the dashboard can read and spend against it. Acceptable only for an internal/trusted admin tool. For public exposure, proxy Claude calls through a backend and keep the key server-side.
 
 ## API routing (dev vs prod)
 

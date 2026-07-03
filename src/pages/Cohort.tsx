@@ -6,6 +6,7 @@ import type { Period } from '../App'
 import ChartCard from '../components/ChartCard'
 import MetricCard from '../components/MetricCard'
 import { NoApiState, ErrorBanner } from '../components/PageState'
+import Subheader from '../components/Subheader'
 import { BarChart3, DollarSign, Users, TrendingUp } from 'lucide-react'
 import { formatCurrency, formatNumber, CHART_COLORS } from '../lib/utils'
 import { HAS_API, useCohort } from '../hooks/useDashboardData'
@@ -44,6 +45,7 @@ export default function Cohort({ period: _period }: CohortProps) {
 
   return (
     <div className="page-enter space-y-5">
+      <Subheader title="Cohort Analysis" />
       {cE && <ErrorBanner message={cE} onRetry={cR} />}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

@@ -6,6 +6,7 @@ import type { Period } from '../App'
 import ChartCard from '../components/ChartCard'
 import MetricCard from '../components/MetricCard'
 import { NoApiState, ErrorBanner } from '../components/PageState'
+import Subheader from '../components/Subheader'
 import { Users as UsersIcon, UserCheck, RefreshCw, Activity } from 'lucide-react'
 import { formatNumber, formatPercent, CHART_COLORS } from '../lib/utils'
 import {
@@ -65,6 +66,7 @@ export default function Users({ period }: UsersProps) {
 
   return (
     <div className="page-enter space-y-5">
+      <Subheader title="Users" />
       {mgE && <ErrorBanner message={mgE} onRetry={mgR} />}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

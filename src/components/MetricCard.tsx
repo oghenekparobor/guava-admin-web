@@ -38,10 +38,10 @@ export default function MetricCard({
   const changeCls  = !hasChange ? '' : change > 0 ? 'badge-positive' : change < 0 ? 'badge-negative' : 'badge-neutral'
 
   return (
-    <div className={cn('card-hover p-5', size === 'sm' && 'p-4', className)}>
-      <div className="flex items-start justify-between mb-3">
-        <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0', iconBg, size === 'sm' && 'w-8 h-8 rounded-lg')}>
-          <Icon size={size === 'sm' ? 15 : 17} className={iconColor} strokeWidth={2} />
+    <div className={cn('card-hover p-5 flex flex-col justify-between', size === 'sm' && 'p-4', className)}>
+      <div className="flex items-start justify-between mb-5">
+        <div className={cn('w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0', iconBg, size === 'sm' && 'w-9 h-9 rounded-xl')}>
+          <Icon size={size === 'sm' ? 16 : 18} className={iconColor} strokeWidth={2} />
         </div>
         {hasChange && ChangeIcon && (
           <span className={cn(changeCls, 'flex-shrink-0')}>
@@ -50,11 +50,13 @@ export default function MetricCard({
           </span>
         )}
       </div>
-      <p className={cn('font-bold text-ink leading-none mb-1', size === 'sm' ? 'text-xl' : 'text-2xl')}>{value}</p>
-      <p className="text-xs font-medium text-muted">{title}</p>
-      {(changeLabel || subtitle) && (
-        <p className="text-[10px] text-faint mt-1">{changeLabel || subtitle}</p>
-      )}
+      <div>
+        <p className="text-xs font-medium text-muted mb-1.5">{title}</p>
+        <p className={cn('font-extrabold text-ink leading-none tracking-tight', size === 'sm' ? 'text-2xl' : 'text-[26px]')}>{value}</p>
+        {(changeLabel || subtitle) && (
+          <p className="text-[10px] text-faint mt-2">{changeLabel || subtitle}</p>
+        )}
+      </div>
     </div>
   )
 }

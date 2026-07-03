@@ -433,6 +433,36 @@ function notificationsSend(body: any) {
   }
 }
 
+// ── Fraud alerts + Top users ────────────────────────────────────────────────
+function fraudAlerts() {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 3)
+  const fmt = (d: Date) => `${d.toLocaleString('en', { month: 'short' })} ${d.getDate()}`
+  return {
+    total_alerts: 4,
+    range: `${fmt(start)} - ${fmt(now)}`,
+    high_pct: 3,
+    medium_pct: 15,
+    low_pct: 77,
+  }
+}
+function topUsers() {
+  const names = ['chidiogo', 'amara.k', 'kwame_b', 'zainab99', 'tunde.o', 'lerato']
+  const rows = names.map((name, i) => {
+    const txns = 9500 - i * 900 - Math.round(rnd(i + 200) * 300)
+    const revenue = Number((90 - i * 8 - rnd(i + 201) * 4).toFixed(2))
+    return { name, transaction_count: txns, revenue }
+  })
+  const total = rows.reduce((s, r) => s + r.revenue, 0)
+  return {
+    results: rows.map((r, i) => ({
+      rank: i + 1,
+      ...r,
+      pct: Number(((r.revenue / total) * 100).toFixed(0)),
+    })),
+  }
+}
+
 // ── Registry ────────────────────────────────────────────────────────────────
 type MockFn = (params: Record<string, string>, body?: any) => any
 
@@ -461,6 +491,8 @@ const MOCKS: Record<string, MockFn> = {
   '/account/admin-details/cohort/monthly/': cohortMonthly,
   '/account/admin-details/bank-transfers/monthly/': bankTransfers,
   '/account/admin-details/health/overview/': healthOverview,
+  '/account/admin-details/fraud/alerts/': fraudAlerts,
+  '/account/admin-details/users/top/': topUsers,
   '/account/admin-details/notifications/segments/preview/': notificationsPreview,
   '/account/admin-details/notifications/send/': notificationsSend,
 }

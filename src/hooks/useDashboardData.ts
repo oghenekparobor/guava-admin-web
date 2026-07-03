@@ -189,6 +189,17 @@ export function useVolumeOverTime() {
 export function useDepositsByChannel() {
   return useData(() => api.depositsByChannel(), EMPTY)
 }
+export function useTopUsers() {
+  return useData(() => api.topUsers(), EMPTY)
+}
+
+export type FraudAlerts = {
+  total_alerts: number; range: string; high_pct: number; medium_pct: number; low_pct: number
+}
+const EMPTY_FRAUD: FraudAlerts = { total_alerts: 0, range: '', high_pct: 0, medium_pct: 0, low_pct: 0 }
+export function useFraudAlerts() {
+  return useData(() => api.fraudAlerts() as Promise<FraudAlerts>, EMPTY_FRAUD)
+}
 export function useCategoryComparison() {
   return useData(() => api.categoryComparison(), EMPTY)
 }

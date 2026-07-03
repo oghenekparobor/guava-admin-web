@@ -1,13 +1,15 @@
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell,
+  ResponsiveContainer, CartesianGrid,
 } from 'recharts'
 import type { Period } from '../App'
 import ChartCard from '../components/ChartCard'
 import MetricCard from '../components/MetricCard'
 import { NoApiState, ErrorBanner } from '../components/PageState'
+import Subheader from '../components/Subheader'
 import { ArrowLeftRight, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { formatCurrency, formatNumber, CHART_COLORS } from '../lib/utils'
+import { mockFor } from '../lib/mocks'
 import {
   HAS_API,
   useWeeklyRevenue, useMonthlyRevenue, useQuarterlyRevenue,
@@ -66,13 +68,32 @@ export default function Transactions({ period }: TxProps) {
 
   const pct = (a: number, b: number) => b ? ((a - b) / b) * 100 : 0
 
-  const typeData = [
-    { name: 'Bank Transfer', value: 99, color: CHART_COLORS.primary  },
-    { name: 'Wallet',        value: 1,  color: CHART_COLORS.secondary },
-  ]
+  // Payment-method split, field-tolerant across backend shapes.
+  const catName = (r: any) => String(r.transaction_category ?? r.category ?? r.transaction_type ?? '').toUpperCase()
+  const catCount = (r: any) => Number(r.transaction_count ?? r.count ?? 0)
+  const buildShares = (rows: any[]) => {
+    const byCat = new Map<string, number>()
+    for (const r of rows) {
+      const cat = catName(r)
+      if (!cat) continue
+      byCat.set(cat, (byCat.get(cat) ?? 0) + catCount(r))
+    }
+    const entries = [...byCat.entries()].filter(([, c]) => c > 0)
+    const total = entries.reduce((s, [, c]) => s + c, 0) || 1
+    const color = (cat: string) => cat.startsWith('WALLET') ? CHART_COLORS.secondary : cat.startsWith('BANK') ? CHART_COLORS.primary : cat.startsWith('DEPOSIT') ? CHART_COLORS.tertiary : CHART_COLORS.accent
+    const nice = (cat: string) => cat.charAt(0) + cat.slice(1).toLowerCase()
+    return entries.map(([name, count]) => ({ name: nice(name), pct: Math.round((count / total) * 100), color: color(name) }))
+  }
+  // Prefer the latest month; fall back to all months, then to spec-shaped mock
+  // (real/legacy backends that don't return the category shape leave it empty).
+  let typeShares = buildShares(latestCategories.length ? latestCategories : monthlyVolume)
+  if (typeShares.length === 0) {
+    typeShares = buildShares(mockFor('/account/admin-details/monthly-category-volume/')?.results ?? [])
+  }
 
   return (
     <div className="page-enter space-y-5">
+      <Subheader title="Transactions" />
       {mrE && <ErrorBanner message={mrE} onRetry={mrR} />}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -132,22 +153,22 @@ export default function Transactions({ period }: TxProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <ChartCard title="Transaction Types" subtitle="By payment method">
-          <div className="flex items-center gap-4 mt-2">
-            <ResponsiveContainer width={90} height={90}>
-              <PieChart>
-                <Pie data={typeData} cx="50%" cy="50%" innerRadius={26} outerRadius={42} dataKey="value" strokeWidth={0}>
-                  {typeData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="space-y-2.5">
-              {typeData.map(d => (
-                <div key={d.name}>
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="w-2 h-2 rounded-full" style={{ background: d.color }} />
-                    <span className="text-xs text-muted font-medium">{d.name}</span>
-                  </div>
-                  <p className="text-sm font-bold text-ink ml-4">{d.value}%</p>
+          <div className="mt-2">
+            <div className="flex gap-1.5 mb-1.5 text-[11px] font-semibold">
+              {typeShares.map(s => (
+                <span key={s.name} style={{ width: `${s.pct}%`, color: s.color }}>{s.pct}%</span>
+              ))}
+            </div>
+            <div className="flex gap-1.5 h-8">
+              {typeShares.map(s => (
+                <div key={s.name} style={{ width: `${s.pct}%`, background: s.color }} className="rounded-lg" />
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-4 mt-4 text-xs">
+              {typeShares.map(s => (
+                <div key={s.name} className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full" style={{ background: s.color }} />
+                  <span className="text-muted">{s.name}</span>
                 </div>
               ))}
             </div>
