@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   DollarSign, Users, ArrowLeftRight, TrendingUp, Activity, CheckCircle2, AlertTriangle,
-  ChevronDown, ArrowUpRight, ShieldAlert,
+  ChevronDown, ArrowUpRight, ServerCog, Wallet, Building2,
 } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
@@ -13,13 +13,23 @@ import ChartCard from '../components/ChartCard'
 import Subheader from '../components/Subheader'
 import { NoApiState, ErrorBanner } from '../components/PageState'
 import { formatCurrency, formatNumber, cn, CHART_COLORS } from '../lib/utils'
+import { currencyLabel } from '../lib/geo'
 import {
   HAS_API,
-  usePlatformHealth, useMonthlyRevenue, useQuarterlyRevenue, useAnnualRevenue, useWeeklyRevenue,
+  usePlatformHealth, useLifetimeStats, useSystemHealth, useTransactionsOverview,
+  useMonthlyRevenue, useQuarterlyRevenue, useAnnualRevenue, useWeeklyRevenue,
   useMonthlyUserGrowth, useWeeklyUserGrowth, useQuarterlyUserGrowth,
   useVolumeOverTime, useGeography, useBankTransfers, useKYCStatusDist,
-  useTransactionTypes, useFraudAlerts, useTopUsers,
+  useTransactionTypes, useTopUsers,
 } from '../hooks/useDashboardData'
+
+// The dashboard period toggle (D/W/M/Q/Y) maps onto the summary endpoints'
+// coarser 30d / 90d / all windows.
+function periodWindow(period: Period): '30d' | '90d' | 'all' {
+  if (period === 'quarterly' || period === 'annual') return 'all'
+  if (period === 'monthly') return '90d'
+  return '30d'
+}
 
 const TX_TYPES = [
   { id: 'all',     label: 'All types' },
@@ -78,7 +88,12 @@ interface OverviewProps { period: Period }
 export default function Overview({ period }: OverviewProps) {
   if (!HAS_API) return <NoApiState />
 
+  const window = periodWindow(period)
+
   const { data: health,         loading: hL,  error: hE,  refetch: hR  } = usePlatformHealth()
+  const { data: lifetime,       loading: lfL                            } = useLifetimeStats()
+  const { data: system,         loading: sysL                           } = useSystemHealth()
+  const { data: txOverview,     loading: toL                            } = useTransactionsOverview(window)
   const { data: monthlyRevenue, loading: mrL, error: mrE, refetch: mrR } = useMonthlyRevenue()
   const { data: quarterlyRevenue                                        } = useQuarterlyRevenue()
   const { data: annualRevenue                                           } = useAnnualRevenue()
@@ -91,8 +106,10 @@ export default function Overview({ period }: OverviewProps) {
   const { data: bankTransfers,  loading: btL, error: btE                } = useBankTransfers()
   const { data: kycDist,        loading: kycL                            } = useKYCStatusDist()
   const { data: txTypes,        loading: ttL                             } = useTransactionTypes()
-  const { data: fraud,          loading: frL                             } = useFraudAlerts()
-  const { data: topUsers,       loading: tuL                             } = useTopUsers()
+  const { data: topUsersResp,   loading: tuL                             } = useTopUsers({ rank_by: 'usdc_volume', window, limit: 10 })
+  const topUsers = topUsersResp.results
+
+  const servicesUp = system.heartbeats.filter((h: any) => !h.is_stale).length
 
   // Transaction overview — transactions over time, driven by the D/W/M/Q/Y
   // toggle. Uses a consistent metric (transaction count) across every grain,
@@ -147,7 +164,8 @@ export default function Overview({ period }: OverviewProps) {
 
   return (
     <div className="page-enter space-y-6">
-      <Subheader title="Dashboard" health={{ uptime: health.uptime_percentage, errorRate: health.error_rate }} />
+      <Subheader title="Dashboard"
+        health={{ status: system.overall_status, ok: servicesUp, total: system.heartbeats.length }} />
 
       {errors.length > 0 && (
         <ErrorBanner message={errors[0]!} onRetry={() => { hR(); mrR() }} />
@@ -163,17 +181,17 @@ export default function Overview({ period }: OverviewProps) {
 
       {/* KPI stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard loading={hL} title="Total Volume" value={formatCurrency(health.total_volume, { compact: true })}
+        <MetricCard loading={lfL} title="Total Volume" value={formatCurrency(lifetime.volume, { compact: true })}
           change={pct(latest.total_volume ?? 0, prev.total_volume ?? 0)} changeLabel="vs last month"
           icon={DollarSign} iconBg="bg-info/15" iconColor="text-info" />
         <MetricCard loading={hL} title="Revenue (30d)" value={formatCurrency(health.revenue_30d, { decimals: 2 })}
-          change={pct(latest.total_revenue ?? 0, prev.total_revenue ?? 0)} changeLabel="vs last month"
+          change={health.revenue_growth_percentage ?? pct(latest.total_revenue ?? 0, prev.total_revenue ?? 0)} changeLabel="vs prev 30d"
           icon={TrendingUp} iconBg="bg-lime/15" iconColor="text-lime" />
         <MetricCard loading={hL} title="Active Users (30d)" value={formatNumber(health.active_users_30d)}
-          change={pct(latestUG.new_users ?? 0, prevUG.new_users ?? 0)} changeLabel="vs last month"
+          change={health.active_users_growth_percentage ?? pct(latestUG.new_users ?? 0, prevUG.new_users ?? 0)} changeLabel="vs prev 30d"
           icon={Users} iconBg="bg-white/10" iconColor="text-[#C2B6F0]" />
         <MetricCard loading={hL} title="Transactions (30d)" value={formatNumber(health.transactions_30d)}
-          change={pct(latest.total_transactions ?? 0, prev.total_transactions ?? 0)} changeLabel="vs last month"
+          change={health.transactions_growth_percentage ?? pct(latest.total_transactions ?? 0, prev.total_transactions ?? 0)} changeLabel="vs prev 30d"
           icon={ArrowLeftRight} iconBg="bg-warning/15" iconColor="text-warning" />
       </div>
 
@@ -248,85 +266,111 @@ export default function Overview({ period }: OverviewProps) {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard loading={hL} title="System Health" subtitle="Live platform status">
-          <div className="space-y-4">
-            {[
-              { label: 'Uptime',     value: `${health.uptime_percentage}%`, dot: 'bg-positive animate-pulse' },
-              { label: 'Error Rate', value: `${health.error_rate}%`,        dot: 'bg-warning' },
-            ].map(r => (
-              <div key={r.label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${r.dot}`} />
-                  <span className="text-xs text-muted">{r.label}</span>
-                </div>
-                <span className="text-sm font-bold text-ink">{r.value}</span>
+        <ChartCard loading={sysL} title="System Health"
+          subtitle="Service heartbeats"
+          action={
+            <span className={system.overall_status === 'healthy' ? 'badge-positive' : 'badge-warning'}>
+              <ServerCog size={11} strokeWidth={2.5} />{servicesUp}/{system.heartbeats.length}
+            </span>
+          }>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className={`w-2 h-2 rounded-full ${/^(up|ok|healthy)$/i.test(system.database) ? 'bg-positive animate-pulse' : 'bg-negative'}`} />
+                <span className="text-xs text-muted">Database</span>
               </div>
-            ))}
-            {[
-              { label: 'Total Users',    value: health.total_users,          icon: CheckCircle2, color: 'text-lime'  },
-              { label: 'KYC (30d)',      value: health.kyc_submissions_30d,  icon: Activity,     color: 'text-info'   },
-              { label: 'Deposits (30d)', value: health.deposits_30d,          icon: Activity,     color: 'text-[#C2B6F0]' },
-            ].map(({ label, value, icon: Icon, color }) => (
-              <div key={label} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Icon size={12} className={color} />
-                  <span className="text-xs text-muted">{label}</span>
-                </div>
-                <span className="text-sm font-bold text-ink">{formatNumber(value)}</span>
-              </div>
-            ))}
-
-            {/* Deposit volume (30d) by currency */}
-            {Object.keys(health.deposit_volume_30d_by_currency ?? {}).length > 0 && (
-              <div className="pt-2 border-t border-border">
-                <p className="text-xs font-semibold text-muted mb-2.5">Deposits 30d · by currency</p>
-                <div className="space-y-1.5">
-                  {Object.entries(health.deposit_volume_30d_by_currency).map(([cur, amt]) => (
-                    <div key={cur} className="flex items-center gap-2">
-                      <span className="text-[10px] text-muted flex-1">{cur}</span>
-                      <span className="text-[10px] font-semibold text-ink">
-                        {cur === 'NGN' ? '₦' + formatNumber(amt as number) : formatCurrency(amt as number, { decimals: 2 })}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <span className="text-sm font-bold text-ink capitalize">{system.database}</span>
+            </div>
+            {system.heartbeats.length === 0 && (
+              <p className="text-[11px] text-faint">No service heartbeats reporting.</p>
             )}
-          </div>
-        </ChartCard>
-      </div>
-
-      {/* Fraud alerts + User growth (design right column) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ChartCard loading={frL} title="Fraud alerts"
-          action={<ShieldAlert size={16} className="text-faint" />}>
-          <div className="mt-1">
-            <div className="flex items-baseline justify-between mb-4">
-              <div className="flex items-baseline gap-2">
-                <span className="text-[26px] font-extrabold text-ink leading-none">{fraud.total_alerts}</span>
-                <span className="text-sm text-muted">alerts</span>
+            {system.heartbeats.map((h: any) => (
+              <div key={h.service} className="flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${h.is_stale ? 'bg-warning' : 'bg-positive'}`} />
+                  <span className="text-xs text-muted truncate">{h.service}</span>
+                </div>
+                <span className={`text-[11px] font-semibold capitalize ${h.is_stale ? 'text-warning' : 'text-muted'}`}>{h.status}</span>
               </div>
-              <span className="text-xs text-faint">{fraud.range}</span>
-            </div>
-            <div className="flex gap-1.5 mb-1.5 text-[11px] font-semibold">
-              <span style={{ width: `${fraud.high_pct}%` }} className="text-negative">{fraud.high_pct}%</span>
-              <span style={{ width: `${fraud.medium_pct}%` }} className="text-warning">{fraud.medium_pct}%</span>
-              <span style={{ width: `${fraud.low_pct}%` }} className="text-positive">{fraud.low_pct}%</span>
-            </div>
-            <div className="flex gap-1.5 h-8">
-              <div style={{ width: `${fraud.high_pct}%` }} className="bg-negative rounded-lg" />
-              <div style={{ width: `${fraud.medium_pct}%` }} className="bg-warning rounded-lg" />
-              <div style={{ width: `${fraud.low_pct}%` }} className="bg-positive rounded-lg" />
-            </div>
-            <div className="flex gap-4 mt-4 text-xs">
-              {[['High', 'bg-negative'], ['Medium', 'bg-warning'], ['Low', 'bg-positive']].map(([l, c]) => (
-                <div key={l} className="flex items-center gap-1.5">
-                  <span className={`w-2 h-2 rounded-full ${c}`} />
-                  <span className="text-muted">{l}</span>
+            ))}
+
+            <div className="pt-3 border-t border-border space-y-3">
+              {[
+                { label: 'Active Users (30d)', value: health.active_users_30d, icon: CheckCircle2, color: 'text-lime'  },
+                { label: 'KYC (30d)',          value: health.kyc_submissions_30d, icon: Activity,  color: 'text-info'   },
+                { label: 'Deposits (30d)',     value: health.deposits_30d,     icon: Activity,     color: 'text-[#C2B6F0]' },
+              ].map(({ label, value, icon: Icon, color }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon size={12} className={color} />
+                    <span className="text-xs text-muted">{label}</span>
+                  </div>
+                  <span className="text-sm font-bold text-ink">{formatNumber(value)}</span>
                 </div>
               ))}
             </div>
           </div>
+        </ChartCard>
+      </div>
+
+      {/* Transaction health + User growth */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ChartCard loading={toL} title="Transaction health"
+          subtitle={`${PERIOD_LABEL[period]} window · ${txOverview.window}`}
+          action={
+            <span className={txOverview.success_rate_percentage >= (txOverview.prior_success_rate_percentage || 0) ? 'badge-positive' : 'badge-warning'}>
+              {Number(txOverview.success_rate_percentage).toFixed(1)}% success
+            </span>
+          }>
+          {(() => {
+            const completed = txOverview.by_status.completed ?? 0
+            const inProgress = txOverview.by_status.in_progress ?? txOverview.in_flight?.count ?? 0
+            const failed = txOverview.by_status.failed ?? 0
+            const total = Math.max(1, completed + inProgress + failed)
+            const seg = (n: number) => `${(n / total) * 100}%`
+            return (
+              <div className="mt-1">
+                <div className="flex items-baseline justify-between mb-4">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-[26px] font-extrabold text-ink leading-none">{formatNumber(txOverview.total_transactions)}</span>
+                    <span className="text-sm text-muted">transactions</span>
+                  </div>
+                  {txOverview.transactions_growth_percentage != null && (
+                    <span className={txOverview.transactions_growth_percentage >= 0 ? 'badge-positive' : 'badge-negative'}>
+                      <ArrowUpRight size={11} strokeWidth={2.5} />{Math.abs(Number(txOverview.transactions_growth_percentage)).toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-1.5 h-8">
+                  <div style={{ width: seg(completed) }} className="bg-positive rounded-lg" />
+                  <div style={{ width: seg(inProgress) }} className="bg-warning rounded-lg" />
+                  <div style={{ width: seg(failed) }} className="bg-negative rounded-lg" />
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 text-xs">
+                  {[
+                    ['Completed', 'bg-positive', completed],
+                    ['In-flight', 'bg-warning', inProgress],
+                    ['Failed', 'bg-negative', failed],
+                  ].map(([l, c, v]) => (
+                    <div key={l as string} className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${c}`} />
+                      <span className="text-muted">{l}</span>
+                      <span className="font-semibold text-ink">{formatNumber(v as number)}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-border text-xs">
+                  <span className="text-muted">Failed value</span>
+                  <span className="font-mono font-semibold text-ink">
+                    ₦{formatNumber(txOverview.failed_value?.ngn ?? 0)}
+                    {(txOverview.failed_value?.usdc ?? 0) > 0 && (
+                      <span className="text-muted"> · {formatCurrency(txOverview.failed_value.usdc, { decimals: 2 })}</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )
+          })()}
         </ChartCard>
 
         <ChartCard loading={mgL} title="User growth">
@@ -339,7 +383,7 @@ export default function Overview({ period }: OverviewProps) {
           </ResponsiveContainer>
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-baseline gap-2">
-              <span className="text-[26px] font-extrabold text-ink leading-none">{formatNumber(health.total_users)}</span>
+              <span className="text-[26px] font-extrabold text-ink leading-none">{formatNumber(lifetime.users)}</span>
               <span className="text-sm text-muted">users</span>
             </div>
             <span className="badge-positive">
@@ -349,26 +393,40 @@ export default function Overview({ period }: OverviewProps) {
         </ChartCard>
       </div>
 
-      {/* Top users (design's "Top merchants" → our data) */}
+      {/* Top users — arranged by total volume over the active window.
+          The subtitle shows the window the API actually returned. */}
       <ChartCard loading={tuL} title="Top Users"
-        action={<button className="text-xs font-semibold text-lime hover:text-lime-soft transition-colors">See all</button>}>
+        subtitle={`By total volume · ${topUsersResp.window || window}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                {['#', 'Name', 'Transactions', 'Revenue', '% of total'].map((h, i) => (
-                  <th key={h} className={cn('text-[11px] font-semibold uppercase tracking-wider text-faint pb-3 pr-6', i >= 2 ? 'text-left' : 'text-left')}>{h}</th>
+                {['#', 'User', 'KYC', 'Transactions', 'Total Volume', 'USDC Volume', 'Revenue'].map((h) => (
+                  <th key={h} className="text-left text-[11px] font-semibold uppercase tracking-wider text-faint pb-3 pr-6">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {topUsers.map((u: any) => (
-                <tr key={u.rank} className="hover:bg-white/5 transition-colors">
-                  <td className="py-3.5 pr-6 font-bold text-lime font-mono">{String(u.rank).padStart(2, '0')}</td>
-                  <td className="py-3.5 pr-6 font-semibold text-ink">{u.name}</td>
+              {[...topUsers]
+                .sort((a: any, b: any) => (b.total_volume ?? 0) - (a.total_volume ?? 0))
+                .map((u: any, i: number) => (
+                <tr key={u.user_id ?? u.wallet_address ?? i} className="hover:bg-white/5 transition-colors">
+                  <td className="py-3.5 pr-6 font-bold text-lime font-mono">{String(i + 1).padStart(2, '0')}</td>
+                  <td className="py-3.5 pr-6 font-semibold text-ink">
+                    {u.username ?? <span className="font-mono text-muted">{u.wallet_address}</span>}
+                  </td>
+                  <td className="py-3.5 pr-6">
+                    <span className={cn('text-[11px] font-semibold',
+                      u.kyc_status === 'verified' ? 'text-positive' :
+                      u.kyc_status === 'failed' ? 'text-negative' :
+                      u.kyc_status === 'pending' ? 'text-warning' : 'text-faint')}>
+                      {u.kyc_status ?? '—'}
+                    </span>
+                  </td>
                   <td className="py-3.5 pr-6 text-muted">{formatNumber(u.transaction_count)}</td>
-                  <td className="py-3.5 pr-6 font-mono text-ink">{formatCurrency(u.revenue, { decimals: 2 })}</td>
-                  <td className="py-3.5 pr-6 text-muted">{u.pct}%</td>
+                  <td className="py-3.5 pr-6 font-mono text-ink">{formatCurrency(u.total_volume, { decimals: 2 })}</td>
+                  <td className="py-3.5 pr-6 font-mono text-muted">{formatCurrency(u.usdc_volume, { decimals: 2 })}</td>
+                  <td className="py-3.5 pr-6 font-mono text-muted">{formatCurrency(u.revenue_contributed, { decimals: 2 })}</td>
                 </tr>
               ))}
             </tbody>
@@ -383,7 +441,7 @@ export default function Overview({ period }: OverviewProps) {
             {geography.slice(0, 6).map((c: any) => (
               <div key={c.currency_code}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-muted truncate max-w-[140px]">{c.currency_code}</span>
+                  <span className="text-xs font-medium text-muted truncate max-w-[180px]">{currencyLabel(c.currency_code)}</span>
                   <span className="text-xs font-semibold text-ink flex-shrink-0">{c.percentage}%</span>
                 </div>
                 <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
@@ -407,14 +465,17 @@ export default function Overview({ period }: OverviewProps) {
         </ChartCard>
       </div>
 
-      {/* Lifetime stats */}
-      <ChartCard loading={hL} title="Lifetime Stats" subtitle="All-time platform totals">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Lifetime stats — GET /stats/lifetime/ */}
+      <ChartCard loading={lfL} title="Lifetime Stats"
+        subtitle={lifetime.first_transaction_at ? `Since ${new Date(lifetime.first_transaction_at).toLocaleDateString('en', { month: 'short', year: 'numeric' })}` : 'All-time platform totals'}>
+        <div className="grid grid-cols-2 lg:grid-cols-6 gap-6">
           {[
-            { label: 'Total Users',   value: formatNumber(health.total_users),                       icon: Users,          color: 'text-[#C2B6F0]' },
-            { label: 'Total Volume',  value: formatCurrency(health.total_volume, { compact: true }),  icon: DollarSign,     color: 'text-info'   },
-            { label: 'Total Revenue', value: formatCurrency(health.total_revenue, { decimals: 2 }),   icon: TrendingUp,     color: 'text-lime'  },
-            { label: 'Total Txns',    value: formatNumber(health.total_transactions),                 icon: ArrowLeftRight, color: 'text-warning' },
+            { label: 'Total Users',   value: formatNumber(lifetime.users),                       icon: Users,          color: 'text-[#C2B6F0]' },
+            { label: 'Total Volume',  value: formatCurrency(lifetime.volume, { compact: true }),  icon: DollarSign,     color: 'text-info'   },
+            { label: 'Total Revenue', value: formatCurrency(lifetime.revenue, { decimals: 2 }),   icon: TrendingUp,     color: 'text-lime'  },
+            { label: 'Total Txns',    value: formatNumber(lifetime.transactions),                 icon: ArrowLeftRight, color: 'text-warning' },
+            { label: 'Deposits',      value: formatNumber(lifetime.deposits),                     icon: Wallet,         color: 'text-info'   },
+            { label: 'Businesses',    value: formatNumber(lifetime.businesses),                   icon: Building2,      color: 'text-lime'  },
           ].map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="text-center">
               <div className={`flex items-center justify-center mb-2 ${color}`}>

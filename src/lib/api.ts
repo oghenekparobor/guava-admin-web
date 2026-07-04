@@ -1,13 +1,11 @@
 // Guava Admin API client
 // Set VITE_API_BASE_URL in .env to connect to the backend.
 //
-// Per-endpoint mock fallback: each call tries the real endpoint first and falls
-// back to spec-shaped mock data (src/lib/mocks.ts) on 404 / network error, or
-// serves mocks directly when no VITE_API_BASE_URL is configured. Endpoints
-// "light up" with real data as the backend ships them.
+// This client talks ONLY to the live backend — there is no mock data. A failed
+// request throws, and the calling page renders its error/empty state, so the UI
+// never silently shows fabricated numbers.
 
 import { auth } from './firebase'
-import { mockFor, hasMock } from './mocks'
 
 const BASE = (import.meta.env.VITE_API_BASE_URL as string) ?? ''
 
@@ -23,46 +21,18 @@ function headers(): HeadersInit {
 }
 
 async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {
-  // No backend configured → serve mock when we have one.
-  if (!BASE) {
-    const m = mockFor(path, params)
-    if (m !== undefined) return m as T
-    throw new Error('API not configured')
-  }
+  if (!BASE) throw new Error('VITE_API_BASE_URL is not configured')
   const qs = Object.keys(params).length ? '?' + new URLSearchParams(params).toString() : ''
-  try {
-    const res = await fetch(BASE + path + qs, { headers: headers() })
-    if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
-    return (await res.json()) as T
-  } catch (e) {
-    // Endpoint not shipped yet / unreachable → fall back to mock if available.
-    const m = mockFor(path, params)
-    if (m !== undefined) {
-      if (import.meta.env.DEV) console.warn(`[api] ${path} → mock fallback (${(e as Error).message})`)
-      return m as T
-    }
-    throw e
-  }
+  const res = await fetch(BASE + path + qs, { headers: headers() })
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
+  return (await res.json()) as T
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
-  if (!BASE) {
-    const m = mockFor(path, {}, body)
-    if (m !== undefined) return m as T
-    throw new Error('API not configured')
-  }
-  try {
-    const res = await fetch(BASE + path, { method: 'POST', headers: headers(), body: JSON.stringify(body) })
-    if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
-    return (await res.json()) as T
-  } catch (e) {
-    const m = mockFor(path, {}, body)
-    if (m !== undefined) {
-      if (import.meta.env.DEV) console.warn(`[api] ${path} → mock fallback (${(e as Error).message})`)
-      return m as T
-    }
-    throw e
-  }
+  if (!BASE) throw new Error('VITE_API_BASE_URL is not configured')
+  const res = await fetch(BASE + path, { method: 'POST', headers: headers(), body: JSON.stringify(body) })
+  if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`)
+  return (await res.json()) as T
 }
 
 // Most endpoints return { results: [...] }
@@ -109,6 +79,15 @@ export const api = {
   monthlyVolume:       (s?: string) => results(`${P}/monthly-category-volume/`,   sd(s)),
   categoryComparison:  (s?: string) => results(`${P}/category-comparative/`,      sd(s)),
   sourceAnalysis:      (s?: string) => results(`${P}/type-source-analysis/`,      sd(s)),
+  statusAnalysis:      (s?: string) => results(`${P}/status-analysis/`,           sd(s)),
+  userCategoryAnalysis:(s?: string) => results(`${P}/user-category-analysis/`,    sd(s)),
+
+  // Single-object summaries (no results wrapper)
+  transactionsOverview: (window: '30d' | '90d' | 'all' = '30d') =>
+    get<Record<string, any>>(`${P}/transactions/overview/`, { window }),
+  lifetimeStats:        () => get<Record<string, any>>(`${P}/stats/lifetime/`),
+  systemHealth:         (staleMinutes?: number) =>
+    get<Record<string, any>>(`${P}/health/system/`, staleMinutes ? { stale_minutes: String(staleMinutes) } : {}),
 
   // Volume over time (bounded window + cursor; returns { results, next_cursor })
   volumeOverTime: (opts: { before?: string; days?: number; fill_gaps?: boolean } = {}) => {
@@ -137,13 +116,31 @@ export const api = {
   // Platform health (flat object, no results wrapper)
   platformHealth:      () => get<Record<string, any>>(`${P}/health/overview/`),
 
-  // Fraud + top users (dashboard right column)
-  fraudAlerts:         () => get<{ total_alerts: number; range: string; high_pct: number; medium_pct: number; low_pct: number }>(`${P}/fraud/alerts/`),
-  topUsers:            () => results(`${P}/users/top/`),
+  // Top users (dashboard). Returns { rank_by, window, results }.
+  topUsers: (opts: {
+    rank_by?: 'usdc_volume' | 'revenue' | 'transaction_count'
+    window?: '30d' | '90d' | 'all'
+    limit?: number
+    transaction_type?: 'wallet' | 'bank' | 'deposit'
+  } = {}) => {
+    const params: Record<string, string> = {}
+    if (opts.rank_by) params.rank_by = opts.rank_by
+    if (opts.window) params.window = opts.window
+    if (opts.limit) params.limit = String(opts.limit)
+    if (opts.transaction_type) params.transaction_type = opts.transaction_type
+    return get<{ rank_by: string; window: string; results: any[] }>(`${P}/users/top/`, params)
+  },
 
   // Notifications
   notificationsPreview: (segment: string, limit = 100, offset = 0) =>
-    get<{ segment: string; total: number; results: any[] }>(
+    get<{
+      segment: string
+      filters: Record<string, any>
+      total: number
+      recipient_count: number
+      results: any[]
+      sample_users: any[]
+    }>(
       `${P}/notifications/segments/preview/`,
       { segment, limit: String(limit), offset: String(offset) },
     ),
@@ -153,16 +150,20 @@ export const api = {
     title: string
     message: string
     type?: string
-    channels: string[]
+    channels?: string[]
+    filters?: Record<string, any>
+    dry_run?: boolean
   }) =>
     post<{
+      error: string | null
       campaign_id: string
       recipients_resolved: number
       devices_targeted: number
       delivered: number
       pruned_stale_tokens: number
       in_app_created: number
+      dry_run: boolean
+      recipient_count: number
+      sent_count: number
     }>(`${P}/notifications/send/`, body),
 } as const
-
-export { hasMock }

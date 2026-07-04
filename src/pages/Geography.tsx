@@ -8,7 +8,8 @@ import { NoApiState, ErrorBanner } from '../components/PageState'
 import Subheader from '../components/Subheader'
 import { Globe, Users, ShieldCheck, Coins } from 'lucide-react'
 import { formatNumber, formatPercent, CHART_COLORS } from '../lib/utils'
-import { HAS_API, useGeography, useGeographyByKyc, usePlatformHealth } from '../hooks/useDashboardData'
+import { countryName, currencyCountry } from '../lib/geo'
+import { HAS_API, useGeography, useGeographyByKyc, useLifetimeStats } from '../hooks/useDashboardData'
 
 const TT = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
@@ -39,7 +40,7 @@ export default function Geography() {
   // comes from KYC records via the /by-kyc/ endpoint.
   const { data: currencyDist, loading: gL, error: gE, refetch: gR } = useGeography()
   const { data: kycGeo,       loading: kL                          } = useGeographyByKyc()
-  const { data: platformHealth, loading: phL                       } = usePlatformHealth()
+  const { data: lifetime,       loading: phL                       } = useLifetimeStats()
 
   const top = currencyDist
     .filter((d: any) => !['OTHER', 'UNKNOWN'].includes(d.currency_code))
@@ -72,13 +73,16 @@ export default function Geography() {
         <MetricCard loading={gL}
           title="Largest Currency"
           value={largest.currency_code ?? '—'}
-          subtitle={largest.percentage != null ? `${largest.percentage}% of users — ${largest.user_count} accounts` : undefined}
+          subtitle={largest.currency_code
+            ? [currencyCountry(largest.currency_code), largest.percentage != null ? `${largest.percentage}% of users` : null]
+                .filter(Boolean).join(' · ') || undefined
+            : undefined}
           icon={Globe}
           iconBg="bg-positive/15" iconColor="text-positive"
         />
         <MetricCard loading={phL}
           title="Total Users"
-          value={formatNumber(platformHealth.total_users)}
+          value={formatNumber(lifetime.users)}
           subtitle="Across all currencies"
           icon={Users}
           iconBg="bg-info/15" iconColor="text-info"
@@ -142,7 +146,12 @@ export default function Geography() {
               {currencyDist.map((row: any, idx: number) => (
                 <tr key={row.currency_code} className="hover:bg-white/5 transition-colors">
                   <td className="py-2.5 pr-6 text-faint font-mono">{String(idx + 1).padStart(2, '0')}</td>
-                  <td className="py-2.5 pr-6 font-semibold text-ink">{row.currency_code}</td>
+                  <td className="py-2.5 pr-6">
+                    <span className="font-semibold text-ink">{row.currency_code}</span>
+                    {currencyCountry(row.currency_code) && (
+                      <span className="text-muted"> · {currencyCountry(row.currency_code)}</span>
+                    )}
+                  </td>
                   <td className="py-2.5 pr-6 font-semibold text-ink">{formatNumber(row.user_count)}</td>
                   <td className="py-2.5 pr-6">
                     <div className="flex items-center gap-2">
@@ -175,15 +184,23 @@ export default function Geography() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border">
-                  {['Country','Users','Share'].map(h => (
+                  {['Country','KYC Status','Users','Share'].map(h => (
                     <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-6">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {kycGeo.results.map((row) => (
-                  <tr key={row.country} className="hover:bg-white/5 transition-colors">
-                    <td className="py-2.5 pr-6 font-semibold text-ink">{row.country}</td>
+                {kycGeo.results.map((row, i) => (
+                  <tr key={`${row.country}-${row.kyc_status ?? i}`} className="hover:bg-white/5 transition-colors">
+                    <td className="py-2.5 pr-6 font-semibold text-ink">{countryName(row.country_iso ?? row.country)}</td>
+                    <td className="py-2.5 pr-6">
+                      {row.kyc_status ? (
+                        <span className={
+                          /complete/i.test(row.kyc_status) ? 'badge-positive' :
+                          /fail|reject/i.test(row.kyc_status) ? 'badge-negative' : 'badge-neutral'
+                        }>{row.kyc_status}</span>
+                      ) : '—'}
+                    </td>
                     <td className="py-2.5 pr-6 text-ink">{formatNumber(row.user_count)}</td>
                     <td className="py-2.5 pr-6 text-muted">{row.percentage}%</td>
                   </tr>

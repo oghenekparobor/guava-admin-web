@@ -1,7 +1,7 @@
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, ComposedChart, PieChart, Pie, Cell,
+  ResponsiveContainer, CartesianGrid, ComposedChart,
 } from 'recharts'
 import type { Period } from '../App'
 import ChartCard from '../components/ChartCard'
@@ -57,12 +57,23 @@ export default function Revenue({ period }: RevenueProps) {
     period === 'quarterly' ? qrL :
     period === 'annual'    ? arL : mrL
 
-  const totalCurRev = revenueByCurrency.reduce((a: number, c: any) => a + (Number(c.total_revenue) || 0), 0) || 1
-  const currencyPieData = revenueByCurrency.map((d: any) => ({
-    name: d.currency,
-    value: d.total_revenue,
-    pct: ((Number(d.total_revenue) / totalCurRev) * 100).toFixed(1),
-  }))
+  // The endpoint returns one row per (month, currency). Aggregate into per-
+  // currency totals so each denomination appears once with its revenue (USDC),
+  // native volume, and transaction count — not a slice per month.
+  const currencyBreakdown = (() => {
+    const m = new Map<string, { currency: string; revenue: number; volume: number; txns: number }>()
+    for (const r of revenueByCurrency as any[]) {
+      const cur = r.currency ?? 'UNKNOWN'
+      const e = m.get(cur) ?? { currency: cur, revenue: 0, volume: 0, txns: 0 }
+      e.revenue += Number(r.total_revenue) || 0
+      e.volume += Number(r.total_volume) || 0
+      e.txns += Number(r.transaction_count) || 0
+      m.set(cur, e)
+    }
+    return [...m.values()].sort((a, b) => b.revenue - a.revenue)
+  })()
+  const totalCurRev = currencyBreakdown.reduce((a, c) => a + c.revenue, 0) || 1
+  const curColor = (c: string) => CURRENCY_COLORS[c] ?? CHART_COLORS.gray
 
   const errors = [wrE, mrE].filter(Boolean)
 
@@ -153,28 +164,45 @@ export default function Revenue({ period }: RevenueProps) {
 
       {/* Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <ChartCard loading={rcL} title="Revenue by Currency" subtitle="Latest period breakdown">
-          {currencyPieData.length > 0 ? (
-            <div className="flex items-start gap-4">
-              <ResponsiveContainer width={130} height={130}>
-                <PieChart>
-                  <Pie data={currencyPieData} cx="50%" cy="50%" innerRadius={36} outerRadius={58}
-                    dataKey="value" strokeWidth={0} startAngle={90} endAngle={-270}>
-                    {currencyPieData.map((d: any) => (
-                      <Cell key={d.name} fill={CURRENCY_COLORS[d.name] ?? CHART_COLORS.gray} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="flex-1 space-y-2 pt-1">
-                {currencyPieData.map((d: any) => (
-                  <div key={d.name} className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: CURRENCY_COLORS[d.name] ?? CHART_COLORS.gray }} />
-                    <span className="text-xs font-semibold text-muted w-10">{d.name}</span>
-                    <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full" style={{ width: `${d.pct}%`, background: CURRENCY_COLORS[d.name] ?? CHART_COLORS.gray }} />
+        <ChartCard loading={rcL} title="Revenue by Currency" subtitle="Share of revenue by denomination">
+          {currencyBreakdown.length > 0 ? (
+            <div className="space-y-4">
+              {/* Single 100%-wide share bar: revenue split across denominations. */}
+              <div className="flex h-3 rounded-full overflow-hidden bg-white/5">
+                {currencyBreakdown.map((c) => (
+                  <div key={c.currency}
+                    className="h-full first:rounded-l-full last:rounded-r-full"
+                    style={{ width: `${(c.revenue / totalCurRev) * 100}%`, background: curColor(c.currency) }}
+                    title={`${c.currency} · ${((c.revenue / totalCurRev) * 100).toFixed(1)}%`} />
+                ))}
+              </div>
+
+              {/* Per-denomination detail: revenue (USDC), native volume, txns. */}
+              <div className="space-y-2.5">
+                {currencyBreakdown.map((c) => (
+                  <div key={c.currency}
+                    className="flex items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: curColor(c.currency) }} />
+                    <div className="w-14 flex-shrink-0">
+                      <p className="text-sm font-bold text-ink leading-none">{c.currency}</p>
+                      <p className="text-[10px] text-faint mt-1">{((c.revenue / totalCurRev) * 100).toFixed(1)}% of rev</p>
                     </div>
-                    <span className="text-xs text-muted w-10 text-right">{d.pct}%</span>
+                    <div className="flex-1 grid grid-cols-3 gap-2 text-right">
+                      <div>
+                        <p className="text-[10px] text-faint uppercase tracking-wider">Revenue</p>
+                        <p className="text-xs font-mono font-semibold text-ink mt-0.5">{formatCurrency(c.revenue, { decimals: 2 })}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-faint uppercase tracking-wider">Volume</p>
+                        <p className="text-xs font-mono text-muted mt-0.5">
+                          {c.currency === 'NGN' ? '₦' + formatNumber(c.volume) : formatCurrency(c.volume, { compact: true })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-faint uppercase tracking-wider">Txns</p>
+                        <p className="text-xs font-mono text-muted mt-0.5">{formatNumber(c.txns)}</p>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -214,7 +242,7 @@ export default function Revenue({ period }: RevenueProps) {
               {[...monthlyRevenue].reverse().map((row: any) => (
                 <tr key={row.month} className="hover:bg-white/5 transition-colors">
                   <td className="py-2.5 pr-4 font-semibold text-muted whitespace-nowrap">
-                    {row.label}
+                    {row.label} {String(row.month).split('-')[0]}
                     {row.is_partial && <span className="ml-1.5 badge-neutral">partial</span>}
                   </td>
                   <td className="py-2.5 pr-4 font-mono">{formatCurrency(row.total_revenue ?? 0, { decimals: 2 })}</td>

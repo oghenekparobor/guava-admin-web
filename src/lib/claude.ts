@@ -18,13 +18,16 @@ const client = apiKey
 
 export type ChatMsg = { role: 'user' | 'assistant'; content: string }
 
-/** Pulls a compact snapshot of the current analytics (real API or mock fallback). */
+/** Pulls a compact snapshot of the current analytics from the live API. */
 export async function gatherContext(): Promise<string> {
   const safe = <T>(p: Promise<T>, fallback: T) => p.catch(() => fallback)
   const [
-    health, revenue, byCurrency, kyc, geo, bank, deposits, mau, retention, topUsers, fraud,
+    health, lifetime, system, txOverview, revenue, byCurrency, kyc, geo, bank, deposits, mau, retention, topUsers,
   ] = await Promise.all([
     safe(api.platformHealth(), {} as Record<string, any>),
+    safe(api.lifetimeStats(), {} as Record<string, any>),
+    safe(api.systemHealth(), {} as Record<string, any>),
+    safe(api.transactionsOverview('all'), {} as Record<string, any>),
     safe(api.monthlyRevenue(), [] as any[]),
     safe(api.revenueByCurrency(), [] as any[]),
     safe(api.kycStatusDist(), [] as any[]),
@@ -33,12 +36,14 @@ export async function gatherContext(): Promise<string> {
     safe(api.monthlyDeposits(), [] as any[]),
     safe(api.mau(), [] as any[]),
     safe(api.retention(), [] as any[]),
-    safe(api.topUsers(), [] as any[]),
-    safe(api.fraudAlerts(), {} as Record<string, any>),
+    safe(api.topUsers({ rank_by: 'usdc_volume', window: 'all', limit: 10 }), { results: [] } as Record<string, any>),
   ])
   const tail = (a: any[], n = 6) => (Array.isArray(a) ? a.slice(-n) : [])
   return JSON.stringify({
-    platform_health: health,
+    platform_health_30d: health,
+    lifetime_totals: lifetime,
+    system_health: system,
+    transactions_overview: txOverview,
     revenue_recent: tail(revenue),
     revenue_by_currency_recent: tail(byCurrency),
     kyc_status_distribution: kyc,
@@ -47,8 +52,7 @@ export async function gatherContext(): Promise<string> {
     deposits_recent: tail(deposits),
     monthly_active_users_recent: tail(mau),
     retention_recent: tail(retention),
-    top_users: topUsers,
-    fraud_alerts: fraud,
+    top_users: (topUsers as any).results ?? topUsers,
   })
 }
 

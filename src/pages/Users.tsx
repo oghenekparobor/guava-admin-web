@@ -12,7 +12,7 @@ import { formatNumber, formatPercent, CHART_COLORS } from '../lib/utils'
 import {
   HAS_API,
   useWeeklyUserGrowth, useMonthlyUserGrowth, useQuarterlyUserGrowth,
-  useCumulativeUsers, useMAU, useRetention, usePlatformHealth,
+  useCumulativeUsers, useMAU, useRetention, useLifetimeStats,
 } from '../hooks/useDashboardData'
 
 const TT = ({ active, payload, label }: any) => {
@@ -44,7 +44,7 @@ export default function Users({ period }: UsersProps) {
   const { data: cumulativeUsers,     loading: cuL               } = useCumulativeUsers()
   const { data: mauData,             loading: mauL              } = useMAU()
   const { data: retentionData,       loading: retL              } = useRetention()
-  const { data: platformHealth,      loading: phL               } = usePlatformHealth()
+  const { data: lifetime,            loading: phL               } = useLifetimeStats()
 
   const isGrowthLoading =
     period === 'weekly'    ? wgL :
@@ -72,7 +72,7 @@ export default function Users({ period }: UsersProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard loading={phL || mgL}
           title="Total Signups"
-          value={formatNumber(platformHealth.total_users)}
+          value={formatNumber(lifetime.users)}
           change={pct(latest.new_users ?? 0, prev.new_users ?? 0)}
           changeLabel="new users vs last month"
           icon={UsersIcon}

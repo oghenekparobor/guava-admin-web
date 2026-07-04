@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Send, Users, ShieldCheck, RefreshCw, CheckCircle2, Loader2 } from 'lucide-react'
+import { Send, Users, ShieldCheck, RefreshCw, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react'
 import ChartCard from '../components/ChartCard'
 import { ErrorBanner } from '../components/PageState'
 import Subheader from '../components/Subheader'
@@ -22,10 +22,12 @@ const CHANNELS: { id: string; label: string; disabled?: boolean }[] = [
   { id: 'email',  label: 'Email (soon)', disabled: true },
 ]
 
-type Preview = { segment: string; total: number; results: any[] }
+type Preview = { segment: string; total: number; recipient_count?: number; results: any[] }
 type SendResult = {
+  error?: string | null
   campaign_id: string; recipients_resolved: number; devices_targeted: number
   delivered: number; pruned_stale_tokens: number; in_app_created: number
+  dry_run?: boolean; recipient_count?: number; sent_count?: number
 }
 
 export default function Notifications() {
@@ -65,22 +67,29 @@ export default function Notifications() {
   const [message, setMessage] = useState('')
   const [channels, setChannels] = useState<string[]>(['push', 'in_app'])
   const [sending, setSending] = useState(false)
-  const [result, setResult] = useState<SendResult | null>(null)
+  const [pending, setPending] = useState<SendResult | null>(null) // dry-run awaiting confirm
+  const [result, setResult] = useState<SendResult | null>(null)   // committed live send
   const [sendError, setSendError] = useState<string | null>(null)
 
   const toggleChannel = (id: string) =>
     setChannels((c) => (c.includes(id) ? c.filter((x) => x !== id) : [...c, id]))
 
-  const canSend = title.trim() && message.trim() && channels.length > 0 && (preview?.total ?? 0) > 0
+  const canSend = Boolean(title.trim() && message.trim() && channels.length > 0 && (preview?.total ?? 0) > 0)
 
-  const send = async () => {
+  // Any edit to audience/content invalidates a pending dry-run confirmation.
+  useEffect(() => { setPending(null); setResult(null) }, [effectiveSegment, title, message, channels])
+
+  const runSend = async (dry_run: boolean) => {
     if (!canSend) return
-    setSending(true); setSendError(null); setResult(null)
+    setSending(true); setSendError(null)
     try {
-      setResult(await api.notificationsSend({
+      const res = await api.notificationsSend({
         segment: effectiveSegment, title: title.trim(), message: message.trim(),
-        type: 'system', channels,
-      }))
+        type: 'system', channels, dry_run,
+      })
+      if (res.error) { setSendError(res.error); return }
+      if (dry_run) { setPending(res); setResult(null) }
+      else { setResult(res); setPending(null) }
     } catch (e) {
       setSendError(e instanceof Error ? e.message : 'Send failed')
     } finally {
@@ -168,30 +177,68 @@ export default function Notifications() {
 
               {sendError && <ErrorBanner message={sendError} />}
 
-              <button
-                onClick={send}
-                disabled={!canSend || sending}
-                className={cn(
-                  'w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors',
-                  canSend && !sending
-                    ? 'bg-lime text-lime-ink hover:bg-lime-soft'
-                    : 'bg-white/5 text-faint cursor-not-allowed',
-                )}
-              >
-                {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-                {sending ? 'Sending…' : `Send to ${formatNumber(preview?.total ?? 0)} users`}
-              </button>
+              {/* Step 1 — dry run to resolve the audience without sending. */}
+              {!pending && !result && (
+                <button
+                  onClick={() => runSend(true)}
+                  disabled={!canSend || sending}
+                  className={cn(
+                    'w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors',
+                    canSend && !sending
+                      ? 'bg-lime text-lime-ink hover:bg-lime-soft'
+                      : 'bg-white/5 text-faint cursor-not-allowed',
+                  )}
+                >
+                  {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                  {sending ? 'Resolving…' : `Preview send to ${formatNumber(preview?.recipient_count ?? preview?.total ?? 0)} users`}
+                </button>
+              )}
+
+              {/* Step 2 — confirm the resolved counts, then commit the live send. */}
+              {pending && !result && (
+                <div className="rounded-xl border border-warning/40 bg-warning/10 p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-warning">
+                    <AlertTriangle size={15} />
+                    <span className="text-xs font-semibold">Confirm live send</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <Stat label="Recipients" value={pending.recipients_resolved} />
+                    <Stat label="Devices targeted" value={pending.devices_targeted} />
+                  </div>
+                  <p className="text-[11px] text-muted">
+                    This delivers a real notification to {formatNumber(pending.devices_targeted)} devices. This can’t be undone.
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => runSend(false)}
+                      disabled={sending}
+                      className="flex-1 flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold bg-lime text-lime-ink hover:bg-lime-soft transition-colors disabled:opacity-50"
+                    >
+                      {sending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
+                      {sending ? 'Sending…' : 'Confirm & send'}
+                    </button>
+                    <button
+                      onClick={() => setPending(null)}
+                      disabled={sending}
+                      className="rounded-lg px-3 py-2 text-sm font-semibold bg-white/5 text-muted hover:text-ink transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {result && (
                 <div className="rounded-xl border border-lime/30 bg-lime/10 p-4 space-y-2">
                   <div className="flex items-center gap-2 text-lime">
                     <CheckCircle2 size={15} />
-                    <span className="text-xs font-semibold">Campaign {result.campaign_id}</span>
+                    <span className="text-xs font-semibold">Campaign {result.campaign_id} sent</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <Stat label="Recipients" value={result.recipients_resolved} />
                     <Stat label="Devices targeted" value={result.devices_targeted} />
                     <Stat label="Delivered" value={result.delivered} />
+                    <Stat label="Sent" value={result.sent_count ?? result.delivered} />
                     <Stat label="Stale tokens pruned" value={result.pruned_stale_tokens} />
                     <Stat label="In-app created" value={result.in_app_created} />
                   </div>

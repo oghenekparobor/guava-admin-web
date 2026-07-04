@@ -8,8 +8,7 @@ import MetricCard from '../components/MetricCard'
 import { NoApiState, ErrorBanner } from '../components/PageState'
 import Subheader from '../components/Subheader'
 import { ArrowLeftRight, TrendingUp, AlertCircle, CheckCircle2 } from 'lucide-react'
-import { formatCurrency, formatNumber, CHART_COLORS } from '../lib/utils'
-import { mockFor } from '../lib/mocks'
+import { formatCurrency, formatNumber, formatPercent, CHART_COLORS } from '../lib/utils'
 import {
   HAS_API,
   useWeeklyRevenue, useMonthlyRevenue, useQuarterlyRevenue,
@@ -49,7 +48,9 @@ export default function Transactions({ period }: TxProps) {
   const { data: depositsByChannel, loading: dcL              } = useDepositsByChannel()
 
   // Latest-month category breakdown (labeled by denomination).
-  const latestMonth = monthlyVolume.length ? monthlyVolume[monthlyVolume.length - 1].month : null
+  const latestRow = monthlyVolume.length ? monthlyVolume[monthlyVolume.length - 1] : null
+  const latestMonth = latestRow?.month ?? null
+  const latestMonthLabel = latestRow ? `${latestRow.label} ${String(latestMonth).slice(0, 4)}` : null
   const latestCategories = monthlyVolume.filter((d: any) => d.month === latestMonth)
 
   const isChartLoading =
@@ -84,12 +85,26 @@ export default function Transactions({ period }: TxProps) {
     const nice = (cat: string) => cat.charAt(0) + cat.slice(1).toLowerCase()
     return entries.map(([name, count]) => ({ name: nice(name), pct: Math.round((count / total) * 100), color: color(name) }))
   }
-  // Prefer the latest month; fall back to all months, then to spec-shaped mock
-  // (real/legacy backends that don't return the category shape leave it empty).
-  let typeShares = buildShares(latestCategories.length ? latestCategories : monthlyVolume)
-  if (typeShares.length === 0) {
-    typeShares = buildShares(mockFor('/account/admin-details/monthly-category-volume/')?.results ?? [])
-  }
+  // Prefer the latest month; fall back to all months. Empty when the backend
+  // returns no category data.
+  const typeShares = buildShares(latestCategories.length ? latestCategories : monthlyVolume)
+
+  // Pivot the long category-volume rows (one per month × category) into the
+  // wide shape the stacked bar needs: { label, bank_transfer, wallet } per month.
+  // NOTE: bank volume is NGN and wallet volume is USDC — different denominations
+  // on one axis, so NGN dominates the scale.
+  const volumeByType = (() => {
+    const byMonth = new Map<string, { label: string; month: string; bank_transfer: number; wallet: number }>()
+    for (const r of monthlyVolume as any[]) {
+      const cat = String(r.transaction_category ?? '').toUpperCase()
+      const vol = Number(r.total_volume ?? 0)
+      const cur = byMonth.get(r.month) ?? { label: r.label ?? r.month, month: r.month, bank_transfer: 0, wallet: 0 }
+      if (cat.startsWith('BANK')) cur.bank_transfer += vol
+      else if (cat.startsWith('WALLET')) cur.wallet += vol
+      byMonth.set(r.month, cur)
+    }
+    return [...byMonth.values()]
+  })()
 
   return (
     <div className="page-enter space-y-5">
@@ -189,9 +204,9 @@ export default function Transactions({ period }: TxProps) {
         </ChartCard>
       </div>
 
-      <ChartCard loading={mvL} title="Volume by Transaction Type" subtitle="Bank Transfer vs Wallet (monthly)">
+      <ChartCard loading={mvL} title="Volume by Transaction Type" subtitle="Bank Transfer (NGN) vs Wallet (USDC), monthly">
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={monthlyVolume} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+          <BarChart data={volumeByType} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke="#38564F" />
             <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 10, fill: '#8A968F' }} axisLine={false} tickLine={false}
@@ -260,12 +275,12 @@ export default function Transactions({ period }: TxProps) {
         </ChartCard>
 
         <ChartCard loading={mvL} title="Category Volume by Denomination"
-          subtitle={latestMonth ? `Latest month · ${latestMonth}` : undefined}>
+          subtitle={latestMonthLabel ? `Latest month · ${latestMonthLabel}` : undefined}>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-border">
-                  {['Category','Denomination','Count','Volume','Fees'].map(h => (
+                  {['Category','Denomination','Count','Volume','Fees','MoM Volume'].map(h => (
                     <th key={h} className="text-left text-[10px] font-semibold uppercase tracking-wider text-faint pb-2.5 pr-4">{h}</th>
                   ))}
                 </tr>
@@ -280,6 +295,13 @@ export default function Transactions({ period }: TxProps) {
                     <td className="py-2.5 pr-4">{formatNumber(row.transaction_count ?? 0)}</td>
                     <td className="py-2.5 pr-4 font-mono">{row.denomination === 'NGN' ? '₦' + formatNumber(row.total_volume ?? 0) : formatCurrency(row.total_volume ?? 0, { decimals: 2 })}</td>
                     <td className="py-2.5 pr-4 font-mono text-muted">{formatCurrency(row.total_fees ?? 0, { decimals: 2 })}</td>
+                    <td className="py-2.5 pr-4">
+                      {row.volume_growth_percentage != null ? (
+                        <span className={row.volume_growth_percentage > 0 ? 'badge-positive' : row.volume_growth_percentage < 0 ? 'badge-negative' : 'badge-neutral'}>
+                          {formatPercent(row.volume_growth_percentage)}
+                        </span>
+                      ) : '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
