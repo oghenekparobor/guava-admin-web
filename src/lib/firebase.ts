@@ -14,8 +14,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 
-export const auth     = getAuth(app)
-export const provider = new GoogleAuthProvider()
+export const auth              = getAuth(app)
+export const provider          = new GoogleAuthProvider()
+export const firebaseProjectId = firebaseConfig.projectId
 
 // Analytics only runs in browsers (not SSR/test environments)
 if (typeof window !== 'undefined') {

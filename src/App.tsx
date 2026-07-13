@@ -9,10 +9,11 @@ import KYC from './pages/KYC'
 import Geography from './pages/Geography'
 import Cohort from './pages/Cohort'
 import Notifications from './pages/Notifications'
+import Settings from './pages/Settings'
 import Login from './pages/Login'
 import { useAuth } from './context/AuthContext'
 
-export type Page    = 'overview' | 'revenue' | 'transactions' | 'users' | 'kyc' | 'geography' | 'cohort' | 'notifications'
+export type Page    = 'overview' | 'revenue' | 'transactions' | 'users' | 'kyc' | 'geography' | 'cohort' | 'notifications' | 'settings'
 export type Period  = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annual'
 
 function Dashboard() {
@@ -29,6 +30,7 @@ function Dashboard() {
       case 'geography':    return <Geography />
       case 'cohort':       return <Cohort       period={period} key={period} />
       case 'notifications': return <Notifications />
+      case 'settings':     return <Settings />
     }
   }
 

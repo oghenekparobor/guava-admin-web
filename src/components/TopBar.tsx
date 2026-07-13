@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Search, Bell, Plus, LogOut,
   LayoutDashboard, TrendingUp, ArrowLeftRight, Users,
-  ShieldCheck, Globe, BarChart3, Bell as BellNav,
+  ShieldCheck, Globe, BarChart3, Bell as BellNav, Settings as SettingsIcon,
 } from 'lucide-react'
 import type { Page, Period } from '../App'
 import { cn } from '../lib/utils'
@@ -17,6 +17,7 @@ const NAV: { id: Page; icon: typeof LayoutDashboard; label: string }[] = [
   { id: 'geography',    icon: Globe,           label: 'Geography' },
   { id: 'cohort',       icon: BarChart3,       label: 'Cohort' },
   { id: 'notifications', icon: BellNav,        label: 'Notifications' },
+  { id: 'settings',     icon: SettingsIcon,    label: 'Settings' },
 ]
 
 const PERIODS: { value: Period; label: string }[] = [
@@ -27,7 +28,7 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: 'annual',    label: 'Y' },
 ]
 
-const NO_PERIOD: Page[] = ['geography', 'notifications']
+const NO_PERIOD: Page[] = ['geography', 'notifications', 'settings']
 
 interface TopBarProps {
   currentPage: Page

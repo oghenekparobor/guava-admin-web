@@ -3,3 +3,5 @@ node_modules
 .env
 # build output (contains inlined VITE_* env vars — never commit)
 dist
+.vercel
+.env*
